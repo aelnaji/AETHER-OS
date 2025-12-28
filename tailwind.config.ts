@@ -38,6 +38,16 @@ const config: Config = {
       backdropBlur: {
         xl: "24px",
       },
+      animation: {
+        "pulse-glow": "pulse-glow 4s ease-in-out infinite",
+        "bounce-slow": "bounce 2s infinite",
+      },
+      keyframes: {
+        "pulse-glow": {
+          "0%, 100%": { opacity: "0.5", transform: "scale(1)" },
+          "50%": { opacity: "0.8", transform: "scale(1.1)" },
+        },
+      },
     },
   },
   plugins: [],
