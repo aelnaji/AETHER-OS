@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 15, 15, 15;
+  --background-end-rgb: 15, 15, 15;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: #0f0f0f;
+  font-family: 'Inter', sans-serif;
+}
+
+@layer components {
+  .glass {
+    @apply backdrop-blur-xl bg-black/40 border border-white/10;
+  }
+
+  .glow {
+    @apply relative;
+  }
+
+  .glow::after {
+    @apply content-[''] absolute -z-10 blur-3xl opacity-50 rounded-full;
+  }
+
+  .glow-amber::after {
+    @apply bg-amber-500/30;
+  }
+
+  .glow-rose::after {
+    @apply bg-rose-500/30;
+  }
+
+  .transition-smooth {
+    @apply transition-all duration-300 ease-in-out;
+  }
+}
+
+@layer base {
+  input, button, select, textarea {
+    @apply transition-smooth focus:outline-none focus:ring-1 focus:ring-white/20;
+  }
+}
