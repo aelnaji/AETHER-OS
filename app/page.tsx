@@ -22,13 +22,19 @@ export default function Home() {
         <p className="text-gray-400 mb-8 font-light">Warmwind Design System Initialized</p>
         
         <div className="flex gap-4">
-          <button 
+          <button
             onClick={() => openWindow('terminal', 'Terminal')}
             className="px-6 py-2 glass rounded-xl hover:bg-white/5 transition-smooth text-sm"
           >
             Open Terminal
           </button>
-          <button 
+          <button
+            onClick={() => openWindow('aether-chat', 'A.E Chat')}
+            className="px-6 py-2 glass rounded-xl hover:bg-white/5 transition-smooth text-sm"
+          >
+            Open A.E Chat
+          </button>
+          <button
             className="px-6 py-2 glass rounded-xl hover:bg-white/5 transition-smooth text-sm"
           >
             Settings ({theme})
