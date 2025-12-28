@@ -1,0 +1,162 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --warmwind-deep-black: #0f0f0f;
+    --warmwind-charcoal: #171717;
+    --warmwind-dark-gray: #1a1a1a;
+    --warmwind-amber-500: #f59e0b;
+    --warmwind-amber-600: #d97706;
+    --warmwind-orange-500: #f97316;
+    --warmwind-orange-600: #ea580c;
+    --warmwind-rose-500: #f43f5e;
+    --warmwind-rose-600: #e11d48;
+  }
+
+  * {
+    @apply border-white/10;
+  }
+
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    @apply bg-warmwind-deep-black text-gray-200 font-sans;
+    @apply overflow-hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-white font-semibold;
+  }
+
+  h1 {
+    @apply text-4xl;
+  }
+
+  h2 {
+    @apply text-3xl;
+  }
+
+  h3 {
+    @apply text-2xl;
+  }
+
+  h4 {
+    @apply text-xl;
+  }
+
+  h5 {
+    @apply text-lg;
+  }
+
+  h6 {
+    @apply text-base;
+  }
+
+  p {
+    @apply text-gray-300 leading-relaxed;
+  }
+
+  a {
+    @apply text-warmwind-amber-500 hover:text-warmwind-amber-600 transition-colors duration-250;
+  }
+
+  button {
+    @apply transition-all duration-250;
+  }
+
+  input, textarea, select {
+    @apply bg-warmwind-dark-gray border border-white/10 text-white;
+    @apply focus:border-warmwind-amber-500 focus:outline-none focus:ring-2 focus:ring-warmwind-amber-500/20;
+    @apply transition-all duration-250;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply backdrop-blur-xl bg-black/40 border border-white/10 rounded-glass;
+  }
+
+  .glass-hover {
+    @apply glass hover:bg-black/50 hover:border-white/20 transition-all duration-250;
+  }
+
+  .glow {
+    @apply absolute rounded-full blur-3xl opacity-30 pointer-events-none;
+  }
+
+  .glow-amber {
+    @apply glow bg-warmwind-amber-500;
+  }
+
+  .glow-rose {
+    @apply glow bg-warmwind-rose-500;
+  }
+
+  .glow-orange {
+    @apply glow bg-warmwind-orange-500;
+  }
+
+  .btn-primary {
+    @apply px-4 py-2 rounded-lg bg-warmwind-amber-500 text-white font-medium;
+    @apply hover:bg-warmwind-amber-600 hover:shadow-glow-amber;
+    @apply transition-all duration-250;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 rounded-lg glass-hover text-white font-medium;
+  }
+
+  .card {
+    @apply glass p-6 rounded-xl;
+  }
+
+  .sidebar {
+    @apply bg-warmwind-charcoal border-r border-white/10;
+  }
+
+  .window {
+    @apply glass rounded-xl overflow-hidden shadow-2xl;
+  }
+
+  .window-header {
+    @apply bg-warmwind-charcoal/80 border-b border-white/10 px-4 py-3;
+    @apply flex items-center justify-between;
+  }
+
+  .window-content {
+    @apply bg-warmwind-deep-black/40 p-4;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
