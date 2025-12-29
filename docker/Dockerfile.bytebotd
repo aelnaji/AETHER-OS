@@ -1,0 +1,13 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY packages/bytebotd/package*.json ./
+
+RUN npm install
+
+COPY packages/bytebotd .
+
+EXPOSE 5900
+
+CMD ["npm", "run", "start:dev"]
