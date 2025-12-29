@@ -6,10 +6,14 @@ import { ChatSidebar } from './ChatSidebar';
 import { ChatMessages } from './ChatMessages';
 import { ChatInput } from './ChatInput';
 import { useAetherChat } from '@/lib/hooks/useAetherChat';
+import { useSettingsStore } from '@/lib/stores/settingsStore';
+import { Settings as SettingsComponent } from '../Settings';
 
 export function AetherChat() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const { isConfigured } = useSettingsStore();
   
   const {
     messages,
@@ -81,10 +85,11 @@ export function AetherChat() {
               <Bot size={18} className="text-gray-400 hover:text-amber-400 transition-colors" />
             </button>
             <button
-              className="p-2 rounded-lg hover:bg-white/5 transition-colors"
-              title="Settings"
+             onClick={() => setSettingsOpen(true)}
+             className="p-2 rounded-lg hover:bg-white/5 transition-colors"
+             title="Settings"
             >
-              <Settings size={18} className="text-gray-400 hover:text-white transition-colors" />
+             <Settings size={18} className="text-gray-400 hover:text-white transition-colors" />
             </button>
           </div>
         </header>
@@ -119,6 +124,11 @@ export function AetherChat() {
           className="fixed inset-0 bg-black/50 lg:hidden z-40"
           onClick={() => setSidebarOpen(false)}
         />
+      )}
+
+      {/* Settings Panel */}
+      {settingsOpen && (
+        <SettingsComponent onClose={() => setSettingsOpen(false)} />
       )}
     </div>
   );

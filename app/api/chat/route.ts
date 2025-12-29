@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { nvidiaClient } from '@/lib/api/nvidiaClient';
 import { ALL_TOOL_SCHEMAS, AE_SYSTEM_PROMPT } from '@/lib/api/toolSchemas';
 import { Message, ChatOptions } from '@/lib/types/chat';
+import { getSettingsFromCookies } from '@/lib/utils/getSettings';
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,11 +24,22 @@ export async function POST(request: NextRequest) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
+          // Get settings from cookies
+          const settings = getSettingsFromCookies();
+
+          // Validate API key
+          if (!settings.apiKey) {
+            return new NextResponse(
+              JSON.stringify({ error: 'NVIDIA API key not configured' }),
+              { status: 400 }
+            );
+          }
+
           const options: ChatOptions = {
-            model: model || process.env.NEXT_PUBLIC_DEFAULT_MODEL || 'meta/llama-3.1-405b-instruct',
-            temperature: 0.7,
-            maxTokens: 2048,
-            systemPrompt: AE_SYSTEM_PROMPT,
+            model: model || settings.model,
+            temperature: settings.temperature,
+            maxTokens: settings.maxTokens,
+            systemPrompt: settings.systemPrompt,
             tools: includeTools ? ALL_TOOL_SCHEMAS : undefined,
             toolChoice: includeTools ? 'auto' : undefined,
           };
