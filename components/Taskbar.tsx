@@ -5,15 +5,16 @@ import { useWindowStore } from '@/lib/stores/windowStore';
 import { useUIStore } from '@/lib/stores/uiStore';
 import { useBytebot } from '@/lib/hooks/useBytebot';
 import { useSettingsStore } from '@/lib/stores/settingsStore';
-import { 
-  MessageSquare, 
-  Terminal, 
-  Settings, 
-  Minimize2, 
-  Square, 
+import {
+  MessageSquare,
+  Terminal,
+  Settings,
+  Minimize2,
+  Square,
   X,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Folder
 } from 'lucide-react';
 
 export function Taskbar() {
@@ -21,6 +22,12 @@ export function Taskbar() {
   const { theme } = useUIStore();
   const { connected } = useBytebot();
   const { isConfigured } = useSettingsStore();
+  const [currentTime, setCurrentTime] = React.useState(new Date());
+
+  React.useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleWindowClick = (windowId: string) => {
     const window = windows[windowId];
@@ -38,6 +45,7 @@ export function Taskbar() {
       case 'aether-chat': return <MessageSquare size={16} className="text-amber-400" />;
       case 'terminal': return <Terminal size={16} className="text-amber-400" />;
       case 'settings': return <Settings size={16} className="text-amber-400" />;
+      case 'file-explorer': return <Folder size={16} className="text-amber-400" />;
       default: return <div className="w-4 h-4 bg-gray-400 rounded" />;
     }
   };
@@ -45,8 +53,25 @@ export function Taskbar() {
   const quickLaunchApps = [
     { id: 'aether-chat', icon: MessageSquare, label: 'A.E Chat' },
     { id: 'terminal', icon: Terminal, label: 'Terminal' },
+    { id: 'file-explorer', icon: Folder, label: 'Files' },
     { id: 'settings', icon: Settings, label: 'Settings' },
   ];
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
 
   return (
     <div className="absolute bottom-0 left-0 right-0 h-16 glass border-t border-white/5 flex items-center px-4">
@@ -135,6 +160,16 @@ export function Taskbar() {
           <div className={`w-2 h-2 rounded-full ${isConfigured ? 'bg-green-400' : 'bg-amber-400'}`} />
           <span className="text-xs text-gray-400">
             {isConfigured ? 'A.E Ready' : 'Setup Required'}
+          </span>
+        </div>
+
+        {/* Clock */}
+        <div className="flex flex-col items-end px-3 py-1 bg-white/5 rounded-lg">
+          <span className="text-sm font-medium text-gray-300">
+            {formatTime(currentTime)}
+          </span>
+          <span className="text-xs text-gray-500">
+            {formatDate(currentTime)}
           </span>
         </div>
 

@@ -5,9 +5,10 @@ import { useWindowStore } from '@/lib/stores/windowStore';
 import { useFileSystemStore } from '@/lib/stores/fileSystemStore';
 import { useUIStore } from '@/lib/stores/uiStore';
 import { useBytebot } from '@/lib/hooks/useBytebot';
+import { useKeyboardShortcuts } from '@/lib/hooks/useKeyboardShortcuts';
 import { WindowManager } from './WindowManager';
 import { Taskbar } from './Taskbar';
-import { Settings, Terminal, MessageSquare } from 'lucide-react';
+import { Settings, Terminal, MessageSquare, Folder } from 'lucide-react';
 
 export function Desktop() {
   const { windows, openWindow } = useWindowStore();
@@ -15,12 +16,21 @@ export function Desktop() {
   const { theme } = useUIStore();
   const { connected } = useBytebot();
 
+  // Enable keyboard shortcuts at the desktop level
+  useKeyboardShortcuts({ enabled: true });
+
   const handleAppClick = (appId: string, title: string) => {
     openWindow(appId, title);
   };
 
+  const handleDesktopContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Context menu functionality can be added here
+    console.log('Desktop context menu');
+  };
+
   return (
-    <div className="relative w-full h-screen bg-warmwind-bg-black overflow-hidden">
+    <div className="relative w-full h-screen bg-warmwind-bg-black overflow-hidden" onContextMenu={handleDesktopContextMenu}>
       {/* Background Orbs */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-warmwind-primary-amber/10 blur-[120px] animate-pulse-glow pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-warmwind-primary-rose/10 blur-[120px] animate-pulse-glow pointer-events-none" />
@@ -29,7 +39,7 @@ export function Desktop() {
       <div className="absolute top-4 left-4 z-10 space-y-2">
         <div className="flex flex-col gap-4">
           {/* Quick Launch Icons */}
-          <div 
+          <div
             onClick={() => handleAppClick('aether-chat', 'A.E Chat')}
             className="flex flex-col items-center p-3 rounded-xl hover:bg-white/10 cursor-pointer transition-smooth group"
           >
@@ -39,7 +49,7 @@ export function Desktop() {
             <span className="text-xs text-gray-300 group-hover:text-white">A.E Chat</span>
           </div>
 
-          <div 
+          <div
             onClick={() => handleAppClick('terminal', 'Terminal')}
             className="flex flex-col items-center p-3 rounded-xl hover:bg-white/10 cursor-pointer transition-smooth group"
           >
@@ -49,7 +59,17 @@ export function Desktop() {
             <span className="text-xs text-gray-300 group-hover:text-white">Terminal</span>
           </div>
 
-          <div 
+          <div
+            onClick={() => handleAppClick('file-explorer', 'Files')}
+            className="flex flex-col items-center p-3 rounded-xl hover:bg-white/10 cursor-pointer transition-smooth group"
+          >
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-rose-500/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+              <Folder size={24} className="text-amber-400" />
+            </div>
+            <span className="text-xs text-gray-300 group-hover:text-white">Files</span>
+          </div>
+
+          <div
             onClick={() => handleAppClick('settings', 'Settings')}
             className="flex flex-col items-center p-3 rounded-xl hover:bg-white/10 cursor-pointer transition-smooth group"
           >

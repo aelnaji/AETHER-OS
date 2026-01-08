@@ -1,0 +1,287 @@
+/* Window Animations and Styles */
+
+/* Window focus states */
+.window-focused {
+  border-color: rgba(245, 158, 11, 0.3);
+  box-shadow: 0 25px 50px -12px rgba(245, 158, 11, 0.1);
+}
+
+.window-blur {
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Window dragging state */
+.window-dragging {
+  cursor: grabbing !important;
+  user-select: none;
+  transition: none !important;
+}
+
+/* Window resizing state */
+.window-resizing {
+  cursor: ew-resize !important;
+  user-select: none;
+  transition: none !important;
+}
+
+/* Window minimize animation */
+@keyframes windowMinimize {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8) translateY(100%);
+  }
+}
+
+.window-minimize {
+  animation: windowMinimize 0.2s ease-out forwards;
+}
+
+/* Window restore animation */
+@keyframes windowRestore {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(-100%);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.window-restore {
+  animation: windowRestore 0.2s ease-out forwards;
+}
+
+/* Window maximize animation */
+@keyframes windowMaximize {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+.window-maximize {
+  animation: windowMaximize 0.15s ease-out forwards;
+}
+
+/* Window open animation */
+@keyframes windowOpen {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.window-open {
+  animation: windowOpen 0.2s ease-out forwards;
+}
+
+/* Window close animation */
+@keyframes windowClose {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+.window-close {
+  animation: windowClose 0.15s ease-in forwards;
+}
+
+/* Resize handles */
+.resize-handle {
+  position: absolute;
+  background: transparent;
+  transition: background 0.1s ease;
+}
+
+.resize-handle:hover {
+  background: rgba(245, 158, 11, 0.5);
+}
+
+.resize-handle-nw {
+  top: 0;
+  left: 0;
+  cursor: nwse-resize;
+}
+
+.resize-handle-n {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: ns-resize;
+}
+
+.resize-handle-ne {
+  top: 0;
+  right: 0;
+  cursor: nesw-resize;
+}
+
+.resize-handle-e {
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  cursor: ew-resize;
+}
+
+.resize-handle-se {
+  bottom: 0;
+  right: 0;
+  cursor: nwse-resize;
+}
+
+.resize-handle-s {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: ns-resize;
+}
+
+.resize-handle-sw {
+  bottom: 0;
+  left: 0;
+  cursor: nesw-resize;
+}
+
+.resize-handle-w {
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  cursor: ew-resize;
+}
+
+/* Title bar controls */
+.titlebar-button {
+  transition: all 0.15s ease;
+}
+
+.titlebar-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.titlebar-close:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.titlebar-close:hover .titlebar-close-icon {
+  color: #ef4444;
+}
+
+/* Window shadow effects */
+.window-shadow {
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.window-shadow-lg {
+  box-shadow: 
+    0 10px 25px -5px rgba(0, 0, 0, 0.3),
+    0 8px 10px -6px rgba(0, 0, 0, 0.3);
+}
+
+.window-shadow-xl {
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.3),
+    0 10px 10px -5px rgba(0, 0, 0, 0.2);
+}
+
+/* Glassmorphism effect */
+.window-glass {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(23, 23, 23, 0.8);
+}
+
+/* Focus glow effect */
+.window-focus-glow {
+  box-shadow: 
+    0 0 0 1px rgba(245, 158, 11, 0.3),
+    0 0 20px rgba(245, 158, 11, 0.1),
+    0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Smooth transitions for all window properties */
+.window-transition {
+  transition: 
+    left 0.05s linear,
+    top 0.05s linear,
+    width 0.1s ease-out,
+    height 0.1s ease-out,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* Content area */
+.window-content {
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.window-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.window-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.window-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.window-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Ripple effect for buttons */
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple::after {
+  content: '';
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: scale(0);
+  opacity: 1;
+  pointer-events: none;
+}
+
+.ripple:active::after {
+  animation: ripple 0.6s ease-out;
+}

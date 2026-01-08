@@ -48,6 +48,9 @@ const config: Config = {
           "50%": { opacity: "0.8", transform: "scale(1.1)" },
         },
       },
+      scrollbar: {
+        thin: "thin",
+      },
     },
   },
   plugins: [],
