@@ -144,6 +144,45 @@ export const useKeyboardShortcuts = (
     [openWindow, preventDefault]
   );
 
+  // Super/Ctrl+P - Open Package Manager
+  const handleOpenPackageManager = useCallback(
+    (e: KeyboardEvent) => {
+      const isOpenPackageManagerShortcut = (e.metaKey || e.ctrlKey) && e.key === 'p';
+      
+      if (isOpenPackageManagerShortcut) {
+        if (preventDefault) e.preventDefault();
+        openWindow('package-manager', 'Package Manager');
+      }
+    },
+    [openWindow, preventDefault]
+  );
+
+  // Super/Ctrl+S - Open System Monitor
+  const handleOpenSystemMonitor = useCallback(
+    (e: KeyboardEvent) => {
+      const isOpenSystemMonitorShortcut = (e.metaKey || e.ctrlKey) && e.key === 's';
+      
+      if (isOpenSystemMonitorShortcut) {
+        if (preventDefault) e.preventDefault();
+        openWindow('system-monitor', 'System Monitor');
+      }
+    },
+    [openWindow, preventDefault]
+  );
+
+  // Super/Ctrl+Shift+P - Open Process Manager
+  const handleOpenProcessManager = useCallback(
+    (e: KeyboardEvent) => {
+      const isOpenProcessManagerShortcut = (e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'P';
+      
+      if (isOpenProcessManagerShortcut) {
+        if (preventDefault) e.preventDefault();
+        openWindow('process-manager', 'Process Manager');
+      }
+    },
+    [openWindow, preventDefault]
+  );
+
   // Super/Ctrl+Left/Right - Snap window to left/right half
   const handleSnapWindow = useCallback(
     (e: KeyboardEvent) => {
@@ -246,6 +285,9 @@ export const useKeyboardShortcuts = (
       handleOpenTerminal(e);
       handleOpenSettings(e);
       handleOpenFileExplorer(e);
+      handleOpenPackageManager(e);
+      handleOpenSystemMonitor(e);
+      handleOpenProcessManager(e);
       handleSnapWindow(e);
       handleCascadeWindows(e);
       handleTileWindows(e);
@@ -267,6 +309,9 @@ export const useKeyboardShortcuts = (
     handleOpenTerminal,
     handleOpenSettings,
     handleOpenFileExplorer,
+    handleOpenPackageManager,
+    handleOpenSystemMonitor,
+    handleOpenProcessManager,
     handleSnapWindow,
     handleCascadeWindows,
     handleTileWindows,
@@ -284,6 +329,9 @@ export const useKeyboardShortcuts = (
       metaT: 'Open Terminal',
       metaComma: 'Open Settings',
       metaE: 'Open File Explorer',
+      metaP: 'Open Package Manager',
+      metaS: 'Open System Monitor',
+      metaShiftP: 'Open Process Manager',
       metaLeft: 'Snap window left',
       metaRight: 'Snap window right',
       metaA: 'Cascade windows',
