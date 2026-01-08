@@ -4,22 +4,29 @@ import React from 'react';
 import { useWindowStore } from '@/lib/stores/windowStore';
 import { useBytebot } from '@/lib/hooks/useBytebot';
 import { useSettingsStore } from '@/lib/stores/settingsStore';
-import { 
-  AetherChat 
+import { useKeyboardShortcuts } from '@/lib/hooks/useKeyboardShortcuts';
+import { AdvancedWindow } from './windows/AdvancedWindow';
+import {
+  AetherChat
 } from './windows/AetherChat';
 import { SettingsPanel } from './windows/Settings';
 import { Terminal } from './windows/Terminal';
+import { FileExplorer } from './windows/FileExplorer';
 
 const WINDOW_COMPONENTS = {
   'aether-chat': AetherChat,
   'settings': SettingsPanel,
   'terminal': Terminal,
+  'file-explorer': FileExplorer,
 } as const;
 
 export function WindowManager() {
-  const { windows, closeWindow, minimizeWindow, maximizeWindow, focusWindow, openWindow } = useWindowStore();
+  const { windows, closeWindow, minimizeWindow, maximizeWindow, focusWindow, openWindow, focusedWindowId } = useWindowStore();
   const { connected } = useBytebot();
   const { isConfigured } = useSettingsStore();
+
+  // Enable keyboard shortcuts
+  useKeyboardShortcuts({ enabled: true });
 
   const handleOpenSettings = () => {
     openWindow('settings', 'Settings');
@@ -27,59 +34,36 @@ export function WindowManager() {
 
   const renderWindow = (windowId: string, window: any) => {
     const Component = WINDOW_COMPONENTS[window.appId as keyof typeof WINDOW_COMPONENTS];
-    
+
     if (!Component) {
       return (
-        <div
+        <AdvancedWindow
           key={windowId}
-          className="absolute bg-[#171717] border border-white/10 rounded-xl shadow-2xl overflow-hidden"
-          style={{
-            left: window.position.x,
-            top: window.position.y,
-            width: window.size.width,
-            height: window.size.height,
-            zIndex: window.zIndex,
-          }}
+          windowId={windowId}
+          minimizable={window.minimizable}
+          maximizable={window.maximizable}
+          closeable={window.closeable}
+          resizable={window.resizable}
         >
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-            <h3 className="text-white font-medium">{window.title}</h3>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-400">Unknown Window</span>
-              <button
-                onClick={() => closeWindow(windowId)}
-                className="p-1 rounded hover:bg-red-500/20 text-gray-400 hover:text-white"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
-          <div className="p-4">
+          <div className="p-6">
+            <h3 className="text-white font-medium mb-4">{window.title}</h3>
             <p className="text-gray-400">Unknown window type: {window.appId}</p>
           </div>
-        </div>
+        </AdvancedWindow>
       );
     }
 
-    const handleClose = () => closeWindow(windowId);
-    const handleMinimize = () => minimizeWindow(windowId);
-    const handleMaximize = () => maximizeWindow(windowId);
-    const handleFocus = () => focusWindow(windowId);
-
     return (
-      <div
+      <AdvancedWindow
         key={windowId}
-        className={`absolute bg-[#171717] border border-white/10 rounded-xl shadow-2xl overflow-hidden ${window.isMinimized ? 'hidden' : ''}`}
-        style={{
-          left: window.position.x,
-          top: window.position.y,
-          width: window.size.width,
-          height: window.size.height,
-          zIndex: window.zIndex,
-        }}
-        onClick={handleFocus}
+        windowId={windowId}
+        minimizable={window.minimizable}
+        maximizable={window.maximizable}
+        closeable={window.closeable}
+        resizable={window.resizable}
       >
-        <Component onClose={handleClose} />
-      </div>
+        <Component />
+      </AdvancedWindow>
     );
   };
 

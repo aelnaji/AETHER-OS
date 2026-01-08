@@ -1,3 +1,7 @@
+/* Import additional styles */
+@import './windows.css';
+@import './taskbar.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,12 +10,16 @@
   --foreground-rgb: 255, 255, 255;
   --background-start-rgb: 15, 15, 15;
   --background-end-rgb: 15, 15, 15;
+  --amber-500: 245, 158, 11;
+  --rose-500: 244, 63, 94;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
   background: #0f0f0f;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @layer components {
@@ -38,10 +46,52 @@ body {
   .transition-smooth {
     @apply transition-all duration-300 ease-in-out;
   }
+
+  .transition-fast {
+    @apply transition-all duration-150 ease-out;
+  }
+
+  .transition-medium {
+    @apply transition-all duration-200 ease-in-out;
+  }
 }
 
 @layer base {
   input, button, select, textarea {
     @apply transition-smooth focus:outline-none focus:ring-1 focus:ring-white/20;
   }
+
+  * {
+    @apply scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Selection styling */
+::selection {
+  background: rgba(245, 158, 11, 0.3);
+  color: white;
+}
+
+::-moz-selection {
+  background: rgba(245, 158, 11, 0.3);
+  color: white;
 }
