@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { MessageBubble, ChatSession, ToolCall } from '@/lib/types/chat';
 import { ToolDefinition } from '@/lib/types/tools';
 import { ALL_TOOL_SCHEMAS } from '@/lib/api/toolSchemas';
+import { useSettingsStore } from '@/lib/stores/settingsStore';
 
 interface UseAetherChatReturn {
   messages: MessageBubble[];
@@ -30,6 +31,8 @@ export function useAetherChat(): UseAetherChatReturn {
   const [model, setModel] = useState(DEFAULT_MODEL);
   const [chatHistory, setChatHistory] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  
+  const { llmSettings, isConfigured } = useSettingsStore();
   
   const abortControllerRef = useRef<AbortController | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -95,6 +98,12 @@ export function useAetherChat(): UseAetherChatReturn {
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim() || isLoading) return;
 
+    // Check if settings are configured
+    if (!isConfigured || !llmSettings.apiKey) {
+      setError('Please configure your NVIDIA API key in Settings before chatting with A.E');
+      return;
+    }
+
     const userMessage: MessageBubble = {
       id: generateId(),
       role: 'user',
@@ -133,13 +142,20 @@ export function useAetherChat(): UseAetherChatReturn {
       
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-nvidia-api-key': llmSettings.apiKey,
+          'x-nvidia-model': llmSettings.model,
+          'x-nvidia-temperature': llmSettings.temperature.toString(),
+          'x-nvidia-max-tokens': llmSettings.maxTokens.toString(),
+          'x-nvidia-system-prompt': llmSettings.systemPrompt,
+        },
         body: JSON.stringify({
           messages: newMessages.map((m) => ({
             role: m.role,
             content: m.content,
           })),
-          model,
+          model: llmSettings.model,
           includeTools: true,
         }),
         signal: abortControllerRef.current.signal,
