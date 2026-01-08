@@ -10,14 +10,17 @@ import {
   AetherChat
 } from './windows/AetherChat';
 import { SettingsPanel } from './windows/Settings';
-import { Terminal } from './windows/Terminal';
-import { FileExplorer } from './windows/FileExplorer';
+import { TerminalEnhanced } from './windows/Terminal';
+import { FileExplorer, PackageManager, SystemMonitor, ProcessManager } from './windows';
 
 const WINDOW_COMPONENTS = {
   'aether-chat': AetherChat,
   'settings': SettingsPanel,
-  'terminal': Terminal,
+  'terminal': TerminalEnhanced,
   'file-explorer': FileExplorer,
+  'package-manager': PackageManager,
+  'system-monitor': SystemMonitor,
+  'process-manager': ProcessManager,
 } as const;
 
 export function WindowManager() {
