@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { NvidiaClient } from '@/lib/api/nvidiaClient';
 
 interface LLMSettings {
   endpoint: string;
@@ -100,20 +101,8 @@ export const useSettingsStore = create<SettingsStore>()(
         }
         
         try {
-          const response = await fetch(llmSettings.endpoint + '/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${llmSettings.apiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: llmSettings.model,
-              messages: [{ role: 'user', content: 'test' }],
-              max_tokens: 1,
-            }),
-          });
-          
-          return response.ok || response.status === 400;
+          const client = new NvidiaClient(llmSettings.apiKey);
+          return await client.validateApiKey();
         } catch (error) {
           console.error('Connection test failed:', error);
           return false;

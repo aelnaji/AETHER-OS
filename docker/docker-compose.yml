@@ -28,6 +28,7 @@ services:
     environment:
       DATABASE_URL: postgresql://aether:aether_local@postgres:5432/bytebot
       NODE_ENV: development
+      PORT: 3001
     depends_on:
       postgres:
         condition: service_healthy
@@ -35,6 +36,8 @@ services:
       - ./packages/bytebot-agent:/app
       - /app/node_modules
     command: npm run start:dev
+    networks:
+      - aether-network
 
   # Bytebotd - Desktop control & terminal service
   bytebotd:
@@ -43,6 +46,7 @@ services:
       dockerfile: docker/Dockerfile.bytebotd
     environment:
       NODE_ENV: development
+      PORT: 5900
     ports:
       - "5900:5900"  # VNC
     depends_on:
@@ -50,6 +54,8 @@ services:
     volumes:
       - ./packages/bytebotd:/app
       - /app/node_modules
+    networks:
+      - aether-network
 
   # AETHER-OS Frontend (integrated in Bytebot monorepo)
   aether-os:
@@ -59,7 +65,9 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_BYTEBOT_ENDPOINT: http://localhost:3001
+      NEXT_PUBLIC_BYTEBOT_ENDPOINT: http://bytebot-agent:3001
+      NODE_ENV: development
+      NVIDIA_API_KEY: ${NVIDIA_API_KEY:-}
     depends_on:
       - bytebot-agent
     volumes:
@@ -67,6 +75,8 @@ services:
       - /app/.next
       - /app/node_modules
     command: npm run dev
+    networks:
+      - aether-network
 
 volumes:
   postgres_data:
