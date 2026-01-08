@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   File,
   Folder,
@@ -15,10 +15,9 @@ import {
   Copy,
   Download,
   Edit3,
-  Plus,
 } from 'lucide-react';
 
-export function FileExplorer({ onClose }: { onClose: () => void }) {
+export function FileExplorer() {
   const [currentPath, setCurrentPath] = useState('/');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');

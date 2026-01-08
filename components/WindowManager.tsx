@@ -1,22 +1,25 @@
 'use client';
 
 import React from 'react';
+import dynamic from 'next/dynamic';
 import { useWindowStore } from '@/lib/stores/windowStore';
 import { useBytebot } from '@/lib/hooks/useBytebot';
 import { useSettingsStore } from '@/lib/stores/settingsStore';
 import { useKeyboardShortcuts } from '@/lib/hooks/useKeyboardShortcuts';
 import { AdvancedWindow } from './windows/AdvancedWindow';
-import {
-  AetherChat
-} from './windows/AetherChat';
-import { SettingsPanel } from './windows/Settings';
-import { TerminalEnhanced } from './windows/Terminal';
-import { FileExplorer, PackageManager, SystemMonitor, ProcessManager } from './windows';
+
+const AetherChat = dynamic(() => import('./windows/AetherChat').then((m) => m.AetherChat), { ssr: false });
+const Settings = dynamic(() => import('./windows/Settings').then((m) => m.Settings), { ssr: false });
+const TerminalEnhanced = dynamic(() => import('./windows/Terminal').then((m) => m.TerminalEnhanced), { ssr: false });
+const FileExplorer = dynamic(() => import('./windows/FileExplorer').then((m) => m.FileExplorer), { ssr: false });
+const PackageManager = dynamic(() => import('./windows/PackageManager').then((m) => m.PackageManager), { ssr: false });
+const SystemMonitor = dynamic(() => import('./windows/SystemMonitor').then((m) => m.SystemMonitor), { ssr: false });
+const ProcessManager = dynamic(() => import('./windows/ProcessManager').then((m) => m.ProcessManager), { ssr: false });
 
 const WINDOW_COMPONENTS = {
   'aether-chat': AetherChat,
-  'settings': SettingsPanel,
-  'terminal': TerminalEnhanced,
+  settings: Settings,
+  terminal: TerminalEnhanced,
   'file-explorer': FileExplorer,
   'package-manager': PackageManager,
   'system-monitor': SystemMonitor,
@@ -24,11 +27,10 @@ const WINDOW_COMPONENTS = {
 } as const;
 
 export function WindowManager() {
-  const { windows, closeWindow, minimizeWindow, maximizeWindow, focusWindow, openWindow, focusedWindowId } = useWindowStore();
+  const { windows, openWindow } = useWindowStore();
   const { connected } = useBytebot();
   const { isConfigured } = useSettingsStore();
 
-  // Enable keyboard shortcuts
   useKeyboardShortcuts({ enabled: true });
 
   const handleOpenSettings = () => {
@@ -70,7 +72,6 @@ export function WindowManager() {
     );
   };
 
-  // Show configuration notice if settings not configured
   if (!isConfigured && Object.keys(windows).length === 0) {
     return (
       <div className="absolute inset-0 flex items-center justify-center z-50">
@@ -96,22 +97,15 @@ export function WindowManager() {
   return (
     <>
       {Object.entries(windows).map(([windowId, window]) => renderWindow(windowId, window))}
-      
-      {/* System Status Bar */}
+
       <div className="absolute top-4 right-4 z-40 flex items-center gap-4">
-        {/* Connection Status */}
         <div className="flex items-center gap-2 px-3 py-1 bg-[#171717]/80 backdrop-blur-sm rounded-lg border border-white/10">
           <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-400' : 'bg-red-400'}`} />
-          <span className="text-xs text-gray-300">
-            {connected ? 'Bytebot Connected' : 'Bytebot Disconnected'}
-          </span>
+          <span className="text-xs text-gray-300">{connected ? 'Bytebot Connected' : 'Bytebot Disconnected'}</span>
         </div>
 
-        {/* Settings Status */}
         <div className="flex items-center gap-2 px-3 py-1 bg-[#171717]/80 backdrop-blur-sm rounded-lg border border-white/10">
-          <span className="text-xs text-gray-300">
-            {isConfigured ? 'A.E Ready' : 'A.E Not Configured'}
-          </span>
+          <span className="text-xs text-gray-300">{isConfigured ? 'A.E Ready' : 'A.E Not Configured'}</span>
         </div>
       </div>
     </>

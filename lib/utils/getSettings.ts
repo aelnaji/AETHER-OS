@@ -1,20 +1,20 @@
 import { cookies } from 'next/headers';
 import { LLMSettings } from '@/lib/types/settings';
+import { logger } from '@/lib/utils/logger';
 
 export function getSettingsFromCookies(): LLMSettings {
   const cookieStore = cookies();
   const settingsCookie = cookieStore.get('aether-settings');
-  
+
   if (settingsCookie) {
     try {
       const parsed = JSON.parse(settingsCookie.value);
       return parsed.state.llmSettings;
     } catch (error) {
-      console.error('Failed to parse settings cookie:', error);
+      logger.warn('Failed to parse settings cookie', error);
     }
   }
-  
-  // Return defaults
+
   return {
     endpoint: 'https://integrate.api.nvidia.com/v1',
     apiKey: '',
@@ -28,6 +28,6 @@ export function getSettingsFromCookies(): LLMSettings {
 - Code execution (Python, Node.js, Bash)
 - Git operations
 
-Be conversational, helpful, and always explain what you're doing before executing tools.`
+Be conversational, helpful, and always explain what you're doing before executing tools.`,
   };
 }

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useWindowStore } from '../stores/windowStore';
-import { WindowPosition, WindowSize } from '../types/window';
 
 interface UseWindowResizeOptions {
   windowId: string;
@@ -18,16 +17,36 @@ export const useWindowResize = ({
   const isResizingRef = useRef(false);
   const mouseStartPositionRef = useRef({ x: 0, y: 0 });
 
-  const window = useWindowStore((state) => state.windows[windowId]);
+  const rafRef = useRef<number | null>(null);
+  const latestRef = useRef<{
+    position: { x: number; y: number };
+    size: { width: number; height: number };
+  } | null>(null);
+
+  const win = useWindowStore((state) => state.windows[windowId]);
   const startResize = useWindowStore((state) => state.startResize);
   const endResize = useWindowStore((state) => state.endResize);
   const updateWindowPosition = useWindowStore((state) => state.updateWindowPosition);
   const updateWindowSize = useWindowStore((state) => state.updateWindowSize);
   const focusWindow = useWindowStore((state) => state.focusWindow);
 
+  const flush = useCallback(() => {
+    if (!latestRef.current || !win) return;
+
+    const { position, size } = latestRef.current;
+
+    if (position.x !== win.position.x || position.y !== win.position.y) {
+      updateWindowPosition(windowId, position.x, position.y);
+    }
+
+    if (size.width !== win.size.width || size.height !== win.size.height) {
+      updateWindowSize(windowId, size.width, size.height);
+    }
+  }, [updateWindowPosition, updateWindowSize, win, windowId]);
+
   const handleMouseDown = useCallback(
     (e: React.MouseEvent, handle: string) => {
-      if (!enabled || !window || window.isMaximized || e.button !== 0) return;
+      if (!enabled || !win || win.isMaximized || e.button !== 0) return;
 
       e.preventDefault();
       e.stopPropagation();
@@ -35,90 +54,85 @@ export const useWindowResize = ({
       isResizingRef.current = true;
       mouseStartPositionRef.current = { x: e.clientX, y: e.clientY };
 
-      startResize(
-        windowId,
-        handle,
-        window.size,
-        window.position
-      );
+      startResize(windowId, handle, win.size, win.position);
       focusWindow(windowId);
       onResizeStart?.();
     },
-    [enabled, window, windowId, startResize, focusWindow, onResizeStart]
+    [enabled, win, windowId, startResize, focusWindow, onResizeStart]
   );
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
-      if (!isResizingRef.current || !window) return;
+      if (!isResizingRef.current || !win) return;
 
       const deltaX = e.clientX - mouseStartPositionRef.current.x;
       const deltaY = e.clientY - mouseStartPositionRef.current.y;
 
-      const handle = window.resizeHandle || 'se';
-      const originalSize = window.originalSize || window.size;
-      const originalPosition = window.originalPosition || window.position;
+      const handle = win.resizeHandle || 'se';
+      const originalSize = win.originalSize || win.size;
+      const originalPosition = win.originalPosition || win.position;
 
-      let newPosition = { ...originalPosition };
-      let newSize = { ...originalSize };
+      let position = { ...originalPosition };
+      let size = { ...originalSize };
 
-      // Calculate new position and size based on handle
       switch (handle) {
         case 'nw':
-          newPosition.x = originalPosition.x + deltaX;
-          newPosition.y = originalPosition.y + deltaY;
-          newSize.width = originalSize.width - deltaX;
-          newSize.height = originalSize.height - deltaY;
+          position = { x: originalPosition.x + deltaX, y: originalPosition.y + deltaY };
+          size = { width: originalSize.width - deltaX, height: originalSize.height - deltaY };
           break;
         case 'n':
-          newPosition.y = originalPosition.y + deltaY;
-          newSize.height = originalSize.height - deltaY;
+          position = { x: originalPosition.x, y: originalPosition.y + deltaY };
+          size = { width: originalSize.width, height: originalSize.height - deltaY };
           break;
         case 'ne':
-          newPosition.y = originalPosition.y + deltaY;
-          newSize.width = originalSize.width + deltaX;
-          newSize.height = originalSize.height - deltaY;
+          position = { x: originalPosition.x, y: originalPosition.y + deltaY };
+          size = { width: originalSize.width + deltaX, height: originalSize.height - deltaY };
           break;
         case 'e':
-          newSize.width = originalSize.width + deltaX;
+          size = { width: originalSize.width + deltaX, height: originalSize.height };
           break;
         case 'se':
-          newSize.width = originalSize.width + deltaX;
-          newSize.height = originalSize.height + deltaY;
+          size = { width: originalSize.width + deltaX, height: originalSize.height + deltaY };
           break;
         case 's':
-          newSize.height = originalSize.height + deltaY;
+          size = { width: originalSize.width, height: originalSize.height + deltaY };
           break;
         case 'sw':
-          newPosition.x = originalPosition.x + deltaX;
-          newSize.width = originalSize.width - deltaX;
-          newSize.height = originalSize.height + deltaY;
+          position = { x: originalPosition.x + deltaX, y: originalPosition.y };
+          size = { width: originalSize.width - deltaX, height: originalSize.height + deltaY };
           break;
         case 'w':
-          newPosition.x = originalPosition.x + deltaX;
-          newSize.width = originalSize.width - deltaX;
+          position = { x: originalPosition.x + deltaX, y: originalPosition.y };
+          size = { width: originalSize.width - deltaX, height: originalSize.height };
           break;
       }
 
-      // Update position if it changed
-      if (newPosition.x !== originalPosition.x || newPosition.y !== originalPosition.y) {
-        updateWindowPosition(windowId, newPosition.x, newPosition.y);
-      }
+      latestRef.current = { position, size };
 
-      // Update size if it changed
-      if (newSize.width !== originalSize.width || newSize.height !== originalSize.height) {
-        updateWindowSize(windowId, newSize.width, newSize.height);
-      }
+      if (rafRef.current) return;
+
+      rafRef.current = window.requestAnimationFrame(() => {
+        rafRef.current = null;
+        flush();
+      });
     },
-    [window, windowId, updateWindowPosition, updateWindowSize]
+    [win, flush]
   );
 
   const handleMouseUp = useCallback(() => {
-    if (isResizingRef.current) {
-      isResizingRef.current = false;
-      endResize(windowId);
-      onResizeEnd?.();
+    if (!isResizingRef.current) return;
+
+    isResizingRef.current = false;
+
+    if (rafRef.current) {
+      window.cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
     }
-  }, [windowId, endResize, onResizeEnd]);
+
+    flush();
+    endResize(windowId);
+    onResizeEnd?.();
+  }, [windowId, endResize, onResizeEnd, flush]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -134,6 +148,6 @@ export const useWindowResize = ({
 
   return {
     onMouseDown: handleMouseDown,
-    isResizing: window?.isResizing || false,
+    isResizing: win?.isResizing || false,
   };
 };

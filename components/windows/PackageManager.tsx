@@ -4,11 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { Package, Search, Download, Trash2, RefreshCw, Info, Loader, CheckCircle, XCircle } from 'lucide-react';
 import { useBytebot } from '@/lib/hooks/useBytebot';
 import { AptService, Package as AptPackage, PackageInfo, SystemInfo } from '@/lib/services/aptService';
+import { logger } from '@/lib/utils/logger';
 
 type ViewMode = 'installed' | 'updates' | 'all';
 
 export function PackageManager() {
-  const { connected, executor } = useBytebot();
+  const { connected, socket } = useBytebot();
   const [aptService, setAptService] = useState<AptService | null>(null);
   const [packages, setPackages] = useState<AptPackage[]>([]);
   const [filteredPackages, setFilteredPackages] = useState<AptPackage[]>([]);
@@ -27,20 +28,19 @@ export function PackageManager() {
 
   // Initialize APT service
   useEffect(() => {
-    if (executor && executor['socket']) {
-      const service = new AptService(executor['socket']);
-      setAptService(service);
-      loadSystemInfo(service);
-      loadPackages(service, viewMode);
-    }
-  }, [executor]);
+    if (!socket) return;
+    const service = new AptService(socket);
+    setAptService(service);
+    loadSystemInfo(service);
+    loadPackages(service, viewMode);
+  }, [socket]);
 
   const loadSystemInfo = async (service: AptService) => {
     try {
       const info = await service.getSystemInfo();
       setSystemInfo(info);
     } catch (error) {
-      console.error('Failed to load system info:', error);
+      logger.warn('Failed to load system info', error);
     }
   };
 
@@ -59,7 +59,7 @@ export function PackageManager() {
       setPackages(pkgs);
       setFilteredPackages(pkgs);
     } catch (error) {
-      console.error('Failed to load packages:', error);
+      logger.warn('Failed to load packages', error);
       setPackages([]);
       setFilteredPackages([]);
     } finally {
@@ -82,7 +82,7 @@ export function PackageManager() {
         const results = await aptService.searchPackages(query);
         setFilteredPackages(results);
       } catch (error) {
-        console.error('Search failed:', error);
+        logger.warn('Search failed', error);
       } finally {
         setLoading(false);
       }
@@ -111,7 +111,7 @@ export function PackageManager() {
         const info = await aptService.getPackageInfo(pkg.name);
         setPackageInfo(info);
       } catch (error) {
-        console.error('Failed to load package info:', error);
+        logger.warn('Failed to load package info', error);
         setPackageInfo(null);
       }
     }
@@ -140,7 +140,7 @@ export function PackageManager() {
         loadSystemInfo(aptService);
       }
     } catch (error) {
-      console.error('Installation failed:', error);
+      logger.warn('Installation failed', error);
       setOperationStatus({ type: null, progress: 0, message: '' });
       alert(`Installation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -173,7 +173,7 @@ export function PackageManager() {
         loadSystemInfo(aptService);
       }
     } catch (error) {
-      console.error('Removal failed:', error);
+      logger.warn('Removal failed', error);
       setOperationStatus({ type: null, progress: 0, message: '' });
       alert(`Removal failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -188,7 +188,7 @@ export function PackageManager() {
       loadSystemInfo(aptService);
       alert('Package cache updated successfully');
     } catch (error) {
-      console.error('Cache update failed:', error);
+      logger.warn('Cache update failed', error);
       alert(`Cache update failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
@@ -221,7 +221,7 @@ export function PackageManager() {
         loadSystemInfo(aptService);
       }
     } catch (error) {
-      console.error('Upgrade failed:', error);
+      logger.warn('Upgrade failed', error);
       setOperationStatus({ type: null, progress: 0, message: '' });
       alert(`Upgrade failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }

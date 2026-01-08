@@ -68,7 +68,7 @@ export const snapToHalf = (
   let result = { x, y, width, height, snapped: false };
 
   // Snap to left half
-  if (Math.abs(x) < edge && Math.abs(y) < edge) {
+  if (Math.abs(x) < edge) {
     result.x = 0;
     result.y = 0;
     result.width = viewport.width / 2;
@@ -77,7 +77,7 @@ export const snapToHalf = (
   }
 
   // Snap to right half
-  if (Math.abs(x + width - viewport.width) < edge && Math.abs(y) < edge) {
+  if (Math.abs(x + width - viewport.width) < edge) {
     result.x = viewport.width / 2;
     result.y = 0;
     result.width = viewport.width / 2;
@@ -86,7 +86,7 @@ export const snapToHalf = (
   }
 
   // Snap to top half
-  if (Math.abs(x) < edge && Math.abs(y) < edge) {
+  if (Math.abs(y) < edge) {
     result.x = 0;
     result.y = 0;
     result.width = viewport.width;
@@ -95,7 +95,7 @@ export const snapToHalf = (
   }
 
   // Snap to bottom half
-  if (Math.abs(x) < edge && Math.abs(y + height - viewport.height) < edge) {
+  if (Math.abs(y + height - viewport.height) < edge) {
     result.x = 0;
     result.y = viewport.height / 2;
     result.width = viewport.width;

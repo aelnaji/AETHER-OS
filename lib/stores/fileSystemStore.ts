@@ -6,6 +6,7 @@ interface FileSystemState {
   installedApps: Record<string, AppMetadata>;
   currentDirectory: string;
 
+  setCurrentDirectory: (path: string) => void;
   writeFile: (path: string, content: string) => void;
   readFile: (path: string) => string | undefined;
   deleteFile: (path: string) => void;
@@ -19,6 +20,8 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => ({
   files: {},
   installedApps: {},
   currentDirectory: '/',
+
+  setCurrentDirectory: (path) => set({ currentDirectory: path }),
 
   writeFile: (path, content) => {
     const name = path.split('/').pop() || '';

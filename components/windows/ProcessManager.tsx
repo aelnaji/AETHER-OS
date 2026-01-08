@@ -4,12 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { Activity, XCircle, Search, RefreshCw, ArrowUpDown, Loader } from 'lucide-react';
 import { useBytebot } from '@/lib/hooks/useBytebot';
 import { ShellService, Process } from '@/lib/services/shellService';
+import { logger } from '@/lib/utils/logger';
 
 type SortField = 'pid' | 'name' | 'cpu' | 'memory';
 type SortOrder = 'asc' | 'desc';
 
 export function ProcessManager() {
-  const { connected, executor } = useBytebot();
+  const { connected, socket } = useBytebot();
   const [shellService, setShellService] = useState<ShellService | null>(null);
   const [processes, setProcesses] = useState<Process[]>([]);
   const [filteredProcesses, setFilteredProcesses] = useState<Process[]>([]);
@@ -22,11 +23,10 @@ export function ProcessManager() {
 
   // Initialize shell service
   useEffect(() => {
-    if (executor && executor['socket']) {
-      const service = new ShellService(executor['socket']);
-      setShellService(service);
-    }
-  }, [executor]);
+    if (!socket) return;
+    const service = new ShellService(socket);
+    setShellService(service);
+  }, [socket]);
 
   // Load processes
   const loadProcesses = async () => {
@@ -38,7 +38,7 @@ export function ProcessManager() {
       setProcesses(procs);
       setFilteredProcesses(procs);
     } catch (error) {
-      console.error('Failed to load processes:', error);
+      logger.warn('Failed to load processes', error);
       setProcesses([]);
       setFilteredProcesses([]);
     } finally {
@@ -48,7 +48,7 @@ export function ProcessManager() {
 
   // Auto-refresh processes
   useEffect(() => {
-    if (!shellService || !autoRefresh) return;
+    if (!shellService || !autoRefresh || !connected) return;
 
     loadProcesses();
     const interval = setInterval(loadProcesses, 2000);
@@ -56,7 +56,7 @@ export function ProcessManager() {
     return () => {
       clearInterval(interval);
     };
-  }, [shellService, autoRefresh]);
+  }, [shellService, autoRefresh, connected]);
 
   // Filter and sort processes
   useEffect(() => {

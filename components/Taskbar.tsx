@@ -19,7 +19,7 @@ import {
 
 export function Taskbar() {
   const { windows, focusedWindowId, focusWindow, minimizeWindow, maximizeWindow, closeWindow, openWindow } = useWindowStore();
-  const { theme } = useUIStore();
+  const { theme, toggleTheme } = useUIStore();
   const { connected } = useBytebot();
   const { isConfigured } = useSettingsStore();
   const [currentTime, setCurrentTime] = React.useState(new Date());
@@ -175,12 +175,10 @@ export function Taskbar() {
 
         {/* Theme Toggle */}
         <button
-          onClick={() => {
-            // Theme toggle functionality can be added here
-            console.log('Theme toggle clicked');
-          }}
+          onClick={toggleTheme}
           className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-smooth"
-          title="Toggle Theme"
+          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+          aria-label="Toggle theme"
         >
           <div className="w-4 h-4 rounded-full bg-gradient-to-br from-amber-400 to-rose-400" />
         </button>

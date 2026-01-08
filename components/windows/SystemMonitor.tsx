@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Activity, Cpu, HardDrive, Network, Clock, Loader } from 'lucide-react';
 import { useBytebot } from '@/lib/hooks/useBytebot';
+import { logger } from '@/lib/utils/logger';
 
 interface SystemStats {
   cpu: {
@@ -33,26 +34,33 @@ interface SystemStats {
 }
 
 export function SystemMonitor() {
-  const { connected, executor } = useBytebot();
+  const { connected, socket } = useBytebot();
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [cpuHistory, setCpuHistory] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!executor || !executor['socket']) return;
+    if (!socket) return;
 
-    const socket = executor['socket'];
+    if (!connected) {
+      setLoading(false);
+      return;
+    }
 
     // Request system stats
     const fetchStats = () => {
-      socket.emit('system:stats', {}, (response: { stats: SystemStats; error?: string }) => {
+      socket.emit('system:stats', {}, (response: { stats?: SystemStats; error?: string }) => {
+        if (response.error) {
+          logger.warn('Failed to fetch system stats', response.error);
+          return;
+        }
+
         if (response.stats) {
           setStats(response.stats);
           setLoading(false);
-          
-          // Update CPU history
-          setCpuHistory(prev => {
-            const newHistory = [...prev, response.stats.cpu.usage];
+
+          setCpuHistory((prev) => {
+            const newHistory = [...prev, response.stats!.cpu.usage];
             if (newHistory.length > 60) newHistory.shift();
             return newHistory;
           });
@@ -60,16 +68,13 @@ export function SystemMonitor() {
       });
     };
 
-    // Fetch immediately
     fetchStats();
-
-    // Set up interval
     const interval = setInterval(fetchStats, 1000);
 
     return () => {
       clearInterval(interval);
     };
-  }, [executor]);
+  }, [socket, connected]);
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 B';

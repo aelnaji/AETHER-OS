@@ -2,9 +2,8 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { MessageBubble, ChatSession, ToolCall } from '@/lib/types/chat';
-import { ToolDefinition } from '@/lib/types/tools';
-import { ALL_TOOL_SCHEMAS } from '@/lib/api/toolSchemas';
 import { useSettingsStore } from '@/lib/stores/settingsStore';
+import { logger } from '@/lib/utils/logger';
 
 interface UseAetherChatReturn {
   messages: MessageBubble[];
@@ -53,7 +52,7 @@ export function useAetherChat(): UseAetherChatReturn {
         setCurrentSessionId(session.id);
       }
     } catch (e) {
-      console.error('Failed to load chat history:', e);
+      logger.warn('Failed to load chat history', e);
     }
   }, []);
 
@@ -66,7 +65,7 @@ export function useAetherChat(): UseAetherChatReturn {
           messages: msgs,
         }));
       } catch (e) {
-        console.error('Failed to save current session:', e);
+        logger.warn('Failed to save current session', e);
       }
     }
   }, [currentSessionId]);
@@ -423,12 +422,14 @@ export function useAetherChat(): UseAetherChatReturn {
   };
 }
 
-function formatToolResults(results: Array<{ name: string; result?: string; error?: string }>): string {
+function formatToolResults(results: Array<{ name: string; output?: string; error?: string }>): string {
   if (results.length === 0) return '';
-  
-  return results.map((r) => {
-    const status = r.error ? '❌' : '✅';
-    const result = r.error || r.result || 'Completed';
-    return `${status} \`${r.name}\`: ${result}`;
-  }).join('\n');
+
+  return results
+    .map((r) => {
+      const status = r.error ? '❌' : '✅';
+      const text = r.error || r.output || 'Completed';
+      return `${status} \`${r.name}\`: ${text}`;
+    })
+    .join('\n');
 }

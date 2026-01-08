@@ -3,7 +3,6 @@
 import React from 'react';
 import { useWindowStore } from '@/lib/stores/windowStore';
 import { useFileSystemStore } from '@/lib/stores/fileSystemStore';
-import { useUIStore } from '@/lib/stores/uiStore';
 import { useBytebot } from '@/lib/hooks/useBytebot';
 import { useKeyboardShortcuts } from '@/lib/hooks/useKeyboardShortcuts';
 import { WindowManager } from './WindowManager';
@@ -12,8 +11,7 @@ import { Settings, Terminal, MessageSquare, Folder, Package, Activity, List } fr
 
 export function Desktop() {
   const { windows, openWindow } = useWindowStore();
-  const { installedApps } = useFileSystemStore();
-  const { theme } = useUIStore();
+  const installedApps = useFileSystemStore((s) => s.getInstalledApps());
   const { connected } = useBytebot();
 
   // Enable keyboard shortcuts at the desktop level
@@ -25,8 +23,6 @@ export function Desktop() {
 
   const handleDesktopContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
-    // Context menu functionality can be added here
-    console.log('Desktop context menu');
   };
 
   return (

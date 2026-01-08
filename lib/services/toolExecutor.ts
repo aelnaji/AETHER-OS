@@ -77,19 +77,21 @@ export class ToolExecutor {
   }
 
   private async handleOpenApp(input: { app_id: string }): Promise<string> {
+    const appId = input.app_id === 'files' ? 'file-explorer' : input.app_id;
+
     const titles: Record<string, string> = {
-      'terminal': 'Terminal',
+      terminal: 'Terminal',
       'aether-chat': 'A.E Chat',
-      'vscode': 'VS Code',
-      'chrome': 'Chrome',
-      'settings': 'Settings',
-      'calculator': 'Calculator',
-      'music': 'Music Player',
-      'files': 'File Manager',
+      vscode: 'VS Code',
+      chrome: 'Chrome',
+      settings: 'Settings',
+      calculator: 'Calculator',
+      music: 'Music Player',
+      'file-explorer': 'Files',
     };
 
-    const title = titles[input.app_id] || input.app_id;
-    this.windowStore.openWindow(input.app_id, title);
+    const title = titles[appId] || appId;
+    this.windowStore.openWindow(appId, title);
     return `Opening ${title}...`;
   }
 

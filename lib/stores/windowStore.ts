@@ -361,6 +361,8 @@ export const useWindowStore = create<WindowManagerState>()(
       name: 'aether-window-store',
       partialize: (state) => ({
         windows: state.windows,
+        focusedWindowId: state.focusedWindowId,
+        zIndexCounter: state.zIndexCounter,
       }),
     }
   )

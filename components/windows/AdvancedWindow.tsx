@@ -55,15 +55,19 @@ export function AdvancedWindow({
 
   if (!window) return null;
 
+  const translate = `translate3d(${window.position.x}px, ${window.position.y}px, 0)`;
+  const scale = window.isMinimized ? 'scale(0.9)' : 'scale(1)';
+
   const windowStyle = {
-    left: window.position.x,
-    top: window.position.y,
+    left: 0,
+    top: 0,
     width: window.size.width,
     height: window.size.height,
     zIndex: window.zIndex,
-    transform: window.isMinimized ? 'scale(0.9)' : 'scale(1)',
+    transform: `${translate} ${scale}`,
     opacity: window.isMinimized ? 0 : 1,
     pointerEvents: window.isMinimized ? 'none' : 'auto',
+    willChange: window.isDragging || window.isResizing ? ('transform' as const) : undefined,
   };
 
   return (

@@ -2,7 +2,12 @@
 
 import React from 'react';
 import { Desktop } from '@/components/Desktop';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export default function Home() {
-  return <Desktop />;
+  return (
+    <ErrorBoundary>
+      <Desktop />
+    </ErrorBoundary>
+  );
 }

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { BytebotToolExecutor } from '@/lib/services/bytebot-executor';
-import { getSettingsFromCookies } from '@/lib/utils/getSettings';
 
 let executor: BytebotToolExecutor | null = null;
 

@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Terminal as TerminalIcon, Plus, X, Trash2, Copy, Edit2, Check } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Terminal as TerminalIcon, Plus, X, Trash2, Copy, Edit2 } from 'lucide-react';
 import { useBytebot } from '@/lib/hooks/useBytebot';
 import { useTerminal } from '@/lib/hooks/useTerminal';
 
 export function TerminalEnhanced() {
-  const { connected, executor } = useBytebot();
-  const terminal = useTerminal({ socket: executor?.['socket'] });
+  const { connected, socketManager } = useBytebot();
+  const terminal = useTerminal({ socket: socketManager.socket, socketManager });
   const [inputValue, setInputValue] = useState('');
   const [editingTabId, setEditingTabId] = useState<string | null>(null);
   const [editingTabName, setEditingTabName] = useState('');
