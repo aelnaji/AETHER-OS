@@ -18,7 +18,7 @@ export const useWindowResize = ({
   const isResizingRef = useRef(false);
   const mouseStartPositionRef = useRef({ x: 0, y: 0 });
 
-  const window = useWindowStore((state) => state.windows[windowId]);
+  const windowState = useWindowStore((state) => state.windows[windowId]);
   const startResize = useWindowStore((state) => state.startResize);
   const endResize = useWindowStore((state) => state.endResize);
   const updateWindowPosition = useWindowStore((state) => state.updateWindowPosition);
@@ -27,7 +27,7 @@ export const useWindowResize = ({
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent, handle: string) => {
-      if (!enabled || !window || window.isMaximized || e.button !== 0) return;
+      if (!enabled || !windowState || windowState.isMaximized || e.button !== 0) return;
 
       e.preventDefault();
       e.stopPropagation();
@@ -38,25 +38,25 @@ export const useWindowResize = ({
       startResize(
         windowId,
         handle,
-        window.size,
-        window.position
+        windowState.size,
+        windowState.position
       );
       focusWindow(windowId);
       onResizeStart?.();
     },
-    [enabled, window, windowId, startResize, focusWindow, onResizeStart]
+    [enabled, windowState, windowId, startResize, focusWindow, onResizeStart]
   );
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
-      if (!isResizingRef.current || !window) return;
+      if (!isResizingRef.current || !windowState) return;
 
       const deltaX = e.clientX - mouseStartPositionRef.current.x;
       const deltaY = e.clientY - mouseStartPositionRef.current.y;
 
-      const handle = window.resizeHandle || 'se';
-      const originalSize = window.originalSize || window.size;
-      const originalPosition = window.originalPosition || window.position;
+      const handle = windowState.resizeHandle || 'se';
+      const originalSize = windowState.originalSize || windowState.size;
+      const originalPosition = windowState.originalPosition || windowState.position;
 
       let newPosition = { ...originalPosition };
       let newSize = { ...originalSize };
@@ -109,7 +109,7 @@ export const useWindowResize = ({
         updateWindowSize(windowId, newSize.width, newSize.height);
       }
     },
-    [window, windowId, updateWindowPosition, updateWindowSize]
+    [windowState, windowId, updateWindowPosition, updateWindowSize]
   );
 
   const handleMouseUp = useCallback(() => {
@@ -121,13 +121,13 @@ export const useWindowResize = ({
   }, [windowId, endResize, onResizeEnd]);
 
   useEffect(() => {
-    if (!enabled || typeof window === 'undefined') return;
+    if (!enabled || typeof globalThis.window === 'undefined') return;
 
     globalThis.window.addEventListener('mousemove', handleMouseMove);
     globalThis.window.addEventListener('mouseup', handleMouseUp);
 
     return () => {
-      if (typeof window !== 'undefined') {
+      if (typeof globalThis.window !== 'undefined') {
         globalThis.window.removeEventListener('mousemove', handleMouseMove);
         globalThis.window.removeEventListener('mouseup', handleMouseUp);
       }
@@ -136,6 +136,6 @@ export const useWindowResize = ({
 
   return {
     onMouseDown: handleMouseDown,
-    isResizing: window?.isResizing || false,
+    isResizing: windowState?.isResizing || false,
   };
 };

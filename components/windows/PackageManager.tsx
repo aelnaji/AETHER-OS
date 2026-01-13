@@ -7,7 +7,12 @@ import { AptService, Package as AptPackage, PackageInfo, SystemInfo } from '@/li
 
 type ViewMode = 'installed' | 'updates' | 'all';
 
-export function PackageManager() {
+interface PackageManagerProps {
+  windowId?: string;
+  onClose?: () => void;
+}
+
+export function PackageManager({ windowId, onClose }: PackageManagerProps = {}) {
   const { connected, executor } = useBytebot();
   const [aptService, setAptService] = useState<AptService | null>(null);
   const [packages, setPackages] = useState<AptPackage[]>([]);

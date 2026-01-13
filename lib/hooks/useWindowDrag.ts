@@ -18,7 +18,7 @@ export const useWindowDrag = ({
   const dragStartPositionRef = useRef({ x: 0, y: 0 });
   const mouseStartPositionRef = useRef({ x: 0, y: 0 });
 
-  const window = useWindowStore((state) => state.windows[windowId]);
+  const windowState = useWindowStore((state) => state.windows[windowId]);
   const startDrag = useWindowStore((state) => state.startDrag);
   const endDrag = useWindowStore((state) => state.endDrag);
   const updateWindowPosition = useWindowStore((state) => state.updateWindowPosition);
@@ -26,28 +26,28 @@ export const useWindowDrag = ({
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
-      if (!enabled || !window || window.isMaximized || e.button !== 0) return;
+      if (!enabled || !windowState || windowState.isMaximized || e.button !== 0) return;
 
       e.preventDefault();
       e.stopPropagation();
 
       isDraggingRef.current = true;
-      dragStartPositionRef.current = { x: window.position.x, y: window.position.y };
+      dragStartPositionRef.current = { x: windowState.position.x, y: windowState.position.y };
       mouseStartPositionRef.current = { x: e.clientX, y: e.clientY };
 
-      const offsetX = e.clientX - window.position.x;
-      const offsetY = e.clientY - window.position.y;
+      const offsetX = e.clientX - windowState.position.x;
+      const offsetY = e.clientY - windowState.position.y;
 
       startDrag(windowId, offsetX, offsetY);
       focusWindow(windowId);
       onDragStart?.();
     },
-    [enabled, window, windowId, startDrag, focusWindow, onDragStart]
+    [enabled, windowState, windowId, startDrag, focusWindow, onDragStart]
   );
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
-      if (!isDraggingRef.current || !window) return;
+      if (!isDraggingRef.current || !windowState) return;
 
       const deltaX = e.clientX - mouseStartPositionRef.current.x;
       const deltaY = e.clientY - mouseStartPositionRef.current.y;
@@ -57,7 +57,7 @@ export const useWindowDrag = ({
 
       updateWindowPosition(windowId, newX, newY);
     },
-    [window, windowId, updateWindowPosition]
+    [windowState, windowId, updateWindowPosition]
   );
 
   const handleMouseUp = useCallback(() => {
@@ -69,13 +69,13 @@ export const useWindowDrag = ({
   }, [windowId, endDrag, onDragEnd]);
 
   useEffect(() => {
-    if (!enabled || typeof window === 'undefined') return;
+    if (!enabled || typeof globalThis.window === 'undefined') return;
 
     globalThis.window.addEventListener('mousemove', handleMouseMove);
     globalThis.window.addEventListener('mouseup', handleMouseUp);
 
     return () => {
-      if (typeof window !== 'undefined') {
+      if (typeof globalThis.window !== 'undefined') {
         globalThis.window.removeEventListener('mousemove', handleMouseMove);
         globalThis.window.removeEventListener('mouseup', handleMouseUp);
       }
@@ -84,6 +84,6 @@ export const useWindowDrag = ({
 
   return {
     onMouseDown: handleMouseDown,
-    isDragging: window?.isDragging || false,
+    isDragging: windowState?.isDragging || false,
   };
 };

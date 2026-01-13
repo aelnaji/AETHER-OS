@@ -12,6 +12,7 @@ import {
 import { SettingsPanel } from './windows/Settings';
 import { TerminalEnhanced } from './windows/Terminal';
 import { FileExplorer, PackageManager, SystemMonitor, ProcessManager } from './windows';
+import { AppStore } from './windows/AppStore';
 
 const WINDOW_COMPONENTS: Record<string, React.ComponentType<any>> = {
   'aether-chat': AetherChat,
@@ -21,6 +22,7 @@ const WINDOW_COMPONENTS: Record<string, React.ComponentType<any>> = {
   'package-manager': PackageManager,
   'system-monitor': SystemMonitor,
   'process-manager': ProcessManager,
+  'app-store': AppStore,
 };
 
 export function WindowManager() {

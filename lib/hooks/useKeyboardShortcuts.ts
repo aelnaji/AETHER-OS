@@ -183,10 +183,23 @@ export const useKeyboardShortcuts = (
     [openWindow, preventDefault]
   );
 
+  // Super/Ctrl+Shift+A - Open App Store
+  const handleOpenAppStore = useCallback(
+    (e: KeyboardEvent) => {
+      const isOpenAppStoreShortcut = (e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'A';
+      
+      if (isOpenAppStoreShortcut) {
+        if (preventDefault) e.preventDefault();
+        openWindow('app-store', 'App Store');
+      }
+    },
+    [openWindow, preventDefault]
+  );
+
   // Super/Ctrl+Left/Right - Snap window to left/right half
   const handleSnapWindow = useCallback(
     (e: KeyboardEvent) => {
-      if (focusedWindowId && typeof window !== 'undefined') {
+      if (focusedWindowId && typeof globalThis.window !== 'undefined') {
         const viewport = { width: globalThis.window.innerWidth, height: globalThis.window.innerHeight };
         const isLeft = (e.metaKey || e.ctrlKey) && e.key === 'ArrowLeft';
         const isRight = (e.metaKey || e.ctrlKey) && e.key === 'ArrowRight';
@@ -259,7 +272,7 @@ export const useKeyboardShortcuts = (
   );
 
   useEffect(() => {
-    if (!enabled || typeof window === 'undefined') return;
+    if (!enabled || typeof globalThis.window === 'undefined') return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't trigger shortcuts when typing in input fields
@@ -288,6 +301,7 @@ export const useKeyboardShortcuts = (
       handleOpenPackageManager(e);
       handleOpenSystemMonitor(e);
       handleOpenProcessManager(e);
+      handleOpenAppStore(e);
       handleSnapWindow(e);
       handleCascadeWindows(e);
       handleTileWindows(e);
@@ -297,7 +311,7 @@ export const useKeyboardShortcuts = (
     globalThis.window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      if (typeof window !== 'undefined') {
+      if (typeof globalThis.window !== 'undefined') {
         globalThis.window.removeEventListener('keydown', handleKeyDown);
       }
     };
@@ -314,6 +328,7 @@ export const useKeyboardShortcuts = (
     handleOpenPackageManager,
     handleOpenSystemMonitor,
     handleOpenProcessManager,
+    handleOpenAppStore,
     handleSnapWindow,
     handleCascadeWindows,
     handleTileWindows,
@@ -334,6 +349,7 @@ export const useKeyboardShortcuts = (
       metaP: 'Open Package Manager',
       metaS: 'Open System Monitor',
       metaShiftP: 'Open Process Manager',
+      metaShiftA: 'Open App Store',
       metaLeft: 'Snap window left',
       metaRight: 'Snap window right',
       metaA: 'Cascade windows',
