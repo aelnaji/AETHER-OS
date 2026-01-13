@@ -12,12 +12,18 @@ import { Settings, Terminal, MessageSquare, Folder, Package, Activity, List } fr
 
 export function Desktop() {
   const { windows, openWindow } = useWindowStore();
-  const { installedApps } = useFileSystemStore();
+  const { getInstalledApps } = useFileSystemStore();
   const { theme } = useUIStore();
   const { connected } = useBytebot();
 
   // Enable keyboard shortcuts at the desktop level
   useKeyboardShortcuts({ enabled: true });
+
+  // Get installed apps with proper null checks and type safety
+  const installedApps = React.useMemo(() => {
+    const apps = getInstalledApps();
+    return Array.isArray(apps) ? apps : [];
+  }, [getInstalledApps]);
 
   const handleAppClick = (appId: string, title: string) => {
     openWindow(appId, title);
@@ -110,16 +116,16 @@ export function Desktop() {
           </div>
 
           {/* Installed Apps */}
-          {installedApps.map((app) => (
+          {installedApps && installedApps.length > 0 && installedApps.map((app) => (
             <div 
-              key={app.appId}
-              onClick={() => handleAppClick(app.appId, app.appName)}
+              key={app.id}
+              onClick={() => handleAppClick(app.id, app.name)}
               className="flex flex-col items-center p-3 rounded-xl hover:bg-white/10 cursor-pointer transition-smooth group"
             >
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gray-500/20 to-gray-600/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                 <span className="text-lg">{app.icon}</span>
               </div>
-              <span className="text-xs text-gray-300 group-hover:text-white">{app.appName}</span>
+              <span className="text-xs text-gray-300 group-hover:text-white">{app.name}</span>
             </div>
           ))}
         </div>
