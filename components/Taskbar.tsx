@@ -22,9 +22,11 @@ export function Taskbar() {
   const { theme } = useUIStore();
   const { connected } = useBytebot();
   const { isConfigured } = useSettingsStore();
-  const [currentTime, setCurrentTime] = React.useState(new Date());
+  const [currentTime, setCurrentTime] = React.useState<Date | null>(null);
 
   React.useEffect(() => {
+    // Initialize with current time on client side only to prevent hydration mismatch
+    setCurrentTime(new Date());
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
@@ -166,10 +168,10 @@ export function Taskbar() {
         {/* Clock */}
         <div className="flex flex-col items-end px-3 py-1 bg-white/5 rounded-lg">
           <span className="text-sm font-medium text-gray-300">
-            {formatTime(currentTime)}
+            {currentTime ? formatTime(currentTime) : '--:--'}
           </span>
           <span className="text-xs text-gray-500">
-            {formatDate(currentTime)}
+            {currentTime ? formatDate(currentTime) : '--'}
           </span>
         </div>
 
