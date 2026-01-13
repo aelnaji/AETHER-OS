@@ -5,7 +5,12 @@ import { Terminal as TerminalIcon, Plus, X, Trash2, Copy, Edit2, Check } from 'l
 import { useBytebot } from '@/lib/hooks/useBytebot';
 import { useTerminal } from '@/lib/hooks/useTerminal';
 
-export function TerminalEnhanced() {
+interface TerminalEnhancedProps {
+  windowId?: string;
+  onClose?: () => void;
+}
+
+export function TerminalEnhanced({ windowId, onClose }: TerminalEnhancedProps = {}) {
   const { connected, executor } = useBytebot();
   const terminal = useTerminal({ socket: executor?.['socket'] });
   const [inputValue, setInputValue] = useState('');

@@ -9,7 +9,12 @@ import { useAetherChat } from '@/lib/hooks/useAetherChat';
 import { useSettingsStore } from '@/lib/stores/settingsStore';
 import { Settings as SettingsComponent } from '../Settings';
 
-export function AetherChat() {
+interface AetherChatProps {
+  windowId?: string;
+  onClose?: () => void;
+}
+
+export function AetherChat({ windowId, onClose }: AetherChatProps = {}) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);

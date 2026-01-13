@@ -8,7 +8,12 @@ import { ShellService, Process } from '@/lib/services/shellService';
 type SortField = 'pid' | 'name' | 'cpu' | 'memory';
 type SortOrder = 'asc' | 'desc';
 
-export function ProcessManager() {
+interface ProcessManagerProps {
+  windowId?: string;
+  onClose?: () => void;
+}
+
+export function ProcessManager({ windowId, onClose }: ProcessManagerProps = {}) {
   const { connected, executor } = useBytebot();
   const [shellService, setShellService] = useState<ShellService | null>(null);
   const [processes, setProcesses] = useState<Process[]>([]);

@@ -5,3 +5,4 @@ export { FileExplorer } from './FileExplorer';
 export { PackageManager } from './PackageManager';
 export { SystemMonitor } from './SystemMonitor';
 export { ProcessManager } from './ProcessManager';
+export { AppStore } from './AppStore';

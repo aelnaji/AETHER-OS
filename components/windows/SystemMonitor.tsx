@@ -32,7 +32,12 @@ interface SystemStats {
   timestamp: number;
 }
 
-export function SystemMonitor() {
+interface SystemMonitorProps {
+  windowId?: string;
+  onClose?: () => void;
+}
+
+export function SystemMonitor({ windowId, onClose }: SystemMonitorProps = {}) {
   const { connected, executor } = useBytebot();
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [cpuHistory, setCpuHistory] = useState<number[]>([]);
