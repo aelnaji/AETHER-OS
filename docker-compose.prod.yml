@@ -5,8 +5,8 @@ services:
       dockerfile: Dockerfile
       target: runner
       args:
-        NEXT_PUBLIC_APP_VERSION: ${NEXT_PUBLIC_APP_VERSION:-production}
-        NEXT_PUBLIC_BYTEBOT_ENDPOINT: ${NEXT_PUBLIC_BYTEBOT_ENDPOINT:-http://localhost:3001}
+        NEXT_PUBLIC_APP_VERSION: ${NEXT_PUBLIC_APP_VERSION:-${GITHUB_SHA:-production}}
+        NEXT_PUBLIC_BYTEBOT_ENDPOINT: ${NEXT_PUBLIC_BYTEBOT_ENDPOINT:-http://bytebot:3001}
         NEXT_PUBLIC_NVIDIA_API_ENDPOINT: ${NEXT_PUBLIC_NVIDIA_API_ENDPOINT:-https://integrate.api.nvidia.com/v1}
         NEXT_PUBLIC_LLM_ENDPOINT: ${NEXT_PUBLIC_LLM_ENDPOINT:-https://integrate.api.nvidia.com/v1}
         NEXT_PUBLIC_DEFAULT_MODEL: ${NEXT_PUBLIC_DEFAULT_MODEL:-meta/llama-3.1-405b-instruct}
@@ -16,19 +16,19 @@ services:
       AETHER_ENV: ${AETHER_ENV:-production}
       PORT: 3000
 
-      NEXT_PUBLIC_APP_VERSION: ${NEXT_PUBLIC_APP_VERSION:-production}
-      NEXT_PUBLIC_BYTEBOT_ENDPOINT: ${NEXT_PUBLIC_BYTEBOT_ENDPOINT:-http://localhost:3001}
+      NEXT_PUBLIC_APP_VERSION: ${NEXT_PUBLIC_APP_VERSION:-${GITHUB_SHA:-production}}
+      NEXT_PUBLIC_BYTEBOT_ENDPOINT: ${NEXT_PUBLIC_BYTEBOT_ENDPOINT:-http://bytebot:3001}
       NEXT_PUBLIC_NVIDIA_API_ENDPOINT: ${NEXT_PUBLIC_NVIDIA_API_ENDPOINT:-https://integrate.api.nvidia.com/v1}
       NEXT_PUBLIC_LLM_ENDPOINT: ${NEXT_PUBLIC_LLM_ENDPOINT:-https://integrate.api.nvidia.com/v1}
       NEXT_PUBLIC_DEFAULT_MODEL: ${NEXT_PUBLIC_DEFAULT_MODEL:-meta/llama-3.1-405b-instruct}
       NEXT_PUBLIC_CHAT_STREAMING: ${NEXT_PUBLIC_CHAT_STREAMING:-true}
 
       NVIDIA_API_KEY: ${NVIDIA_API_KEY:-}
-      DATABASE_URL: ${DATABASE_URL:-}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-aether}}
 
       HEALTHCHECK_TIMEOUT_MS: ${HEALTHCHECK_TIMEOUT_MS:-5000}
       MIN_FREE_MEMORY_MB: ${MIN_FREE_MEMORY_MB:-256}
-      AETHER_ALLOW_NO_BYTEBOT: ${AETHER_ALLOW_NO_BYTEBOT:-true}
+      AETHER_ALLOW_NO_BYTEBOT: ${AETHER_ALLOW_NO_BYTEBOT:-false}
     ports:
       - "${AETHER_OS_PORT:-3000}:3000"
     restart: unless-stopped
@@ -36,28 +36,120 @@ services:
       test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s
       timeout: 5s
-      start_period: 10s
-      retries: 3
+      start_period: 15s
+      retries: 5
     volumes:
       - aether_os_data:/app/data
+      - aether_os_logs:/app/logs
     networks:
       - aether-net
     logging:
       driver: json-file
       options:
         max-size: "10m"
-        max-file: "3"
+        max-file: "5"
+        labels: "aether-os"
+        tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}"
     deploy:
       resources:
         limits:
-          cpus: "1.0"
-          memory: 512M
+          cpus: "1.5"
+          memory: 768M
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  # PostgreSQL database service
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-aether}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - aether-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
         reservations:
           memory: 128M
 
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    networks:
+      - aether-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+        reservations:
+          memory: 64M
+
+  # Nginx reverse proxy (optional)
+  nginx:
+    image: nginx:1.25-alpine
+    ports:
+      - "${NGINX_HTTP_PORT:-80}:80"
+      - "${NGINX_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/ssl:/etc/nginx/ssl
+    depends_on:
+      - aether-os
+    networks:
+      - aether-net
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 64M
+        reservations:
+          memory: 32M
+
 volumes:
   aether_os_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./data
+      o: bind
+  aether_os_logs:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./logs
+      o: bind
+  postgres_data:
+  redis_data:
 
 networks:
   aether-net:
     driver: bridge
+    attachable: true

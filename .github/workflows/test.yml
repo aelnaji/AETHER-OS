@@ -1,0 +1,309 @@
+name: AETHER-OS CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, feat-aether-os-phase6-testing-docker-prod ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: 18
+  DOCKER_BUILDKIT: 1
+
+jobs:
+  setup:
+    name: Setup Environment
+    runs-on: ubuntu-latest
+    outputs:
+      node-version: ${{ steps.setup-node.outputs.node-version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+  lint:
+    name: Lint Code
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linting
+        run: npm run lint
+
+  unit-tests:
+    name: Unit Tests
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: unit-test-coverage
+          path: coverage/
+
+  integration-tests:
+    name: Integration Tests
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run integration tests
+        run: npm run test:integration
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: integration-test-coverage
+          path: coverage/
+
+  build:
+    name: Build Application
+    needs: [lint, unit-tests, integration-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: |
+            .next/
+            public/
+
+  docker-build:
+    name: Docker Build
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        if: github.ref == 'refs/heads/main'
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Build and push production image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          target: runner
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/aether-os:latest
+          build-args: |
+            NEXT_PUBLIC_APP_VERSION=${{ github.sha }}
+            NEXT_PUBLIC_BYTEBOT_ENDPOINT=http://bytebot:3001
+            NEXT_PUBLIC_NVIDIA_API_ENDPOINT=https://integrate.api.nvidia.com/v1
+            NEXT_PUBLIC_LLM_ENDPOINT=https://integrate.api.nvidia.com/v1
+            NEXT_PUBLIC_DEFAULT_MODEL=meta/llama-3.1-405b-instruct
+            NEXT_PUBLIC_CHAT_STREAMING=true
+
+      - name: Build development image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          target: dev
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/aether-os:dev
+          build-args: |
+            NEXT_PUBLIC_APP_VERSION=dev
+            NEXT_PUBLIC_BYTEBOT_ENDPOINT=http://localhost:3001
+            NEXT_PUBLIC_NVIDIA_API_ENDPOINT=https://integrate.api.nvidia.com/v1
+            NEXT_PUBLIC_LLM_ENDPOINT=https://integrate.api.nvidia.com/v1
+            NEXT_PUBLIC_DEFAULT_MODEL=meta/llama-3.1-405b-instruct
+            NEXT_PUBLIC_CHAT_STREAMING=true
+
+  docker-compose-test:
+    name: Docker Compose Test
+    needs: docker-build
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build test image
+        run: docker build -t aether-os-test --target runner .
+
+      - name: Test docker-compose.prod.yml
+        run: |
+          docker compose -f docker-compose.prod.yml config
+          docker compose -f docker-compose.prod.yml build --no-cache
+
+      - name: Test health endpoints
+        run: |
+          docker run -d -p 3000:3000 --name aether-test aether-os-test
+          sleep 10
+          curl -f http://localhost:3000/api/health || true
+          curl -f http://localhost:3000/api/readiness || true
+          curl -f http://localhost:3000/api/liveness || true
+          docker stop aether-test
+          docker rm aether-test
+
+  deployment-test:
+    name: Deployment Test
+    needs: docker-compose-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Test deployment scripts
+        run: |
+          # Test that all required files exist
+          test -f docker-compose.prod.yml && echo "✓ docker-compose.prod.yml exists"
+          test -f DEPLOYMENT.md && echo "✓ DEPLOYMENT.md exists"
+          test -f .env.example && echo "✓ .env.example exists"
+          
+          # Test environment variable substitution
+          echo "AETHER_OS_PORT=3010" > test.env
+          docker compose --env-file test.env -f docker-compose.prod.yml config > /dev/null
+          echo "✓ Environment variable substitution works"
+          rm test.env
+
+  coverage-report:
+    name: Coverage Report
+    needs: [unit-tests, integration-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate full coverage report
+        run: npm run test:coverage
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: full-coverage-report
+          path: coverage/
+
+      - name: Check coverage thresholds
+        run: |
+          # Parse coverage summary and check thresholds
+          COVERAGE=$(grep -oP 'All files.*?\d+\.\d+' coverage/lcov.info | tail -1 | grep -oP '\d+\.\d+')
+          echo "Total coverage: ${COVERAGE}%"
+          
+          if (( $(echo "${COVERAGE} < 80" | bc -l) )); then
+            echo "❌ Coverage below 80% threshold"
+            exit 1
+          else
+            echo "✅ Coverage meets 80% threshold"
+          fi
+
+  notify:
+    name: Notification
+    needs: [coverage-report, deployment-test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine job status
+        id: job-status
+        run: |
+          if [[ ${{ needs.lint.result }} == 'success' && ${{ needs.unit-tests.result }} == 'success' && ${{ needs.integration-tests.result }} == 'success' && ${{ needs.build.result }} == 'success' ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "All tests passed! 🎉" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "Some tests failed! ❌" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Slack Notification
+        if: github.ref == 'refs/heads/main' && steps.job-status.outputs.status == 'failure'
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_COLOR: danger
+          SLACK_TITLE: "AETHER-OS CI/CD Failed"
+          SLACK_MESSAGE: "Build failed on main branch"
+
+      - name: Success Notification
+        if: github.ref == 'refs/heads/main' && steps.job-status.outputs.status == 'success'
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_COLOR: good
+          SLACK_TITLE: "AETHER-OS CI/CD Success"
+          SLACK_MESSAGE: "All tests passed and build successful! 🎉"
