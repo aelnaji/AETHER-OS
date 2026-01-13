@@ -1,0 +1,56 @@
+services:
+  aether-os:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+      args:
+        NEXT_PUBLIC_APP_VERSION: ${NEXT_PUBLIC_APP_VERSION:-staging}
+        NEXT_PUBLIC_BYTEBOT_ENDPOINT: ${NEXT_PUBLIC_BYTEBOT_ENDPOINT:-http://localhost:3001}
+        NEXT_PUBLIC_NVIDIA_API_ENDPOINT: ${NEXT_PUBLIC_NVIDIA_API_ENDPOINT:-https://integrate.api.nvidia.com/v1}
+        NEXT_PUBLIC_LLM_ENDPOINT: ${NEXT_PUBLIC_LLM_ENDPOINT:-https://integrate.api.nvidia.com/v1}
+        NEXT_PUBLIC_DEFAULT_MODEL: ${NEXT_PUBLIC_DEFAULT_MODEL:-meta/llama-3.1-405b-instruct}
+        NEXT_PUBLIC_CHAT_STREAMING: ${NEXT_PUBLIC_CHAT_STREAMING:-true}
+    environment:
+      NODE_ENV: production
+      AETHER_ENV: ${AETHER_ENV:-staging}
+      PORT: 3000
+
+      NEXT_PUBLIC_APP_VERSION: ${NEXT_PUBLIC_APP_VERSION:-staging}
+      NEXT_PUBLIC_BYTEBOT_ENDPOINT: ${NEXT_PUBLIC_BYTEBOT_ENDPOINT:-http://localhost:3001}
+      NEXT_PUBLIC_NVIDIA_API_ENDPOINT: ${NEXT_PUBLIC_NVIDIA_API_ENDPOINT:-https://integrate.api.nvidia.com/v1}
+      NEXT_PUBLIC_LLM_ENDPOINT: ${NEXT_PUBLIC_LLM_ENDPOINT:-https://integrate.api.nvidia.com/v1}
+      NEXT_PUBLIC_DEFAULT_MODEL: ${NEXT_PUBLIC_DEFAULT_MODEL:-meta/llama-3.1-405b-instruct}
+      NEXT_PUBLIC_CHAT_STREAMING: ${NEXT_PUBLIC_CHAT_STREAMING:-true}
+
+      NVIDIA_API_KEY: ${NVIDIA_API_KEY:-}
+      DATABASE_URL: ${DATABASE_URL:-}
+
+      HEALTHCHECK_TIMEOUT_MS: ${HEALTHCHECK_TIMEOUT_MS:-5000}
+      MIN_FREE_MEMORY_MB: ${MIN_FREE_MEMORY_MB:-128}
+      AETHER_ALLOW_NO_BYTEBOT: ${AETHER_ALLOW_NO_BYTEBOT:-true}
+    ports:
+      - "${AETHER_OS_STAGING_PORT:-3002}:3000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/readiness').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    volumes:
+      - aether_os_data:/app/data
+    networks:
+      - aether-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  aether_os_data:
+
+networks:
+  aether-net:
+    driver: bridge

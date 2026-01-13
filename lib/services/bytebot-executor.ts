@@ -1,11 +1,12 @@
 import { ToolCall, ToolCallResult } from '@/lib/types/chat';
+import { publicEnv } from '@/lib/config/publicEnv';
 import { io, Socket } from 'socket.io-client';
 
 export class BytebotToolExecutor {
   private socket: Socket;
   private connected: boolean = false;
 
-  constructor(endpoint: string = process.env.NEXT_PUBLIC_BYTEBOT_ENDPOINT || 'http://localhost:3001') {
+  constructor(endpoint: string = publicEnv.bytebotEndpoint) {
     this.socket = io(endpoint, {
       reconnection: true,
       reconnectionDelay: 1000,

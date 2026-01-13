@@ -44,11 +44,17 @@ interface ChatResponse {
 export class NvidiaClient {
   private apiKey: string;
   private baseUrl: string;
-  private defaultModel: string = 'meta/llama-3.1-405b-instruct';
+  private defaultModel: string;
 
   constructor(apiKey?: string, baseUrl?: string) {
     this.apiKey = apiKey || process.env.NVIDIA_API_KEY || '';
-    this.baseUrl = baseUrl || process.env.NEXT_PUBLIC_NVIDIA_API_ENDPOINT || 'https://integrate.api.nvidia.com/v1';
+    this.baseUrl =
+      baseUrl ||
+      process.env.NEXT_PUBLIC_NVIDIA_API_ENDPOINT ||
+      process.env.NEXT_PUBLIC_LLM_ENDPOINT ||
+      'https://integrate.api.nvidia.com/v1';
+    this.defaultModel =
+      process.env.NEXT_PUBLIC_DEFAULT_MODEL || 'meta/llama-3.1-405b-instruct';
   }
 
   private buildUrl(model: string): string {

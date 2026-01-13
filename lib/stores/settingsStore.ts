@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { NvidiaClient } from '@/lib/api/nvidiaClient';
+import { publicEnv } from '@/lib/config/publicEnv';
 
 interface LLMSettings {
   endpoint: string;
@@ -21,9 +22,9 @@ interface SettingsStore {
 }
 
 const DEFAULT_SETTINGS: LLMSettings = {
-  endpoint: 'https://integrate.api.nvidia.com/v1',
+  endpoint: publicEnv.nvidiaApiEndpoint,
   apiKey: '',
-  model: 'meta/llama-3.1-405b-instruct',
+  model: publicEnv.defaultModel,
   temperature: 0.7,
   maxTokens: 2048,
   systemPrompt: `You are A.E (AETHER ENGINE), an autonomous AI agent integrated into AETHER-OS running on a local Docker environment. You can control the desktop, execute code, manage files, and accomplish real tasks. You have access to:
