@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Bot, Menu, X, Settings } from 'lucide-react';
+import { Bot, Menu, Settings } from 'lucide-react';
 import { ChatSidebar } from './ChatSidebar';
 import { ChatMessages } from './ChatMessages';
 import { ChatInput } from './ChatInput';

@@ -1,10 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, AlertCircle, Eye, EyeOff, ExternalLink, Save, RotateCcw } from 'lucide-react';
+import { CheckCircle, AlertCircle, Eye, EyeOff, Save, RotateCcw, X } from 'lucide-react';
 import { useSettingsStore, NVIDIA_MODELS } from '@/lib/stores/settingsStore';
 
-export function SettingsPanel() {
+export interface SettingsPanelProps {
+  onClose: () => void;
+}
+
+export function SettingsPanel({ onClose }: SettingsPanelProps) {
   const { llmSettings, isConfigured, updateLLMSettings, resetToDefaults, validateSettings, testConnection } = useSettingsStore();
   const [showApiKey, setShowApiKey] = useState(false);
   const [isTesting, setIsTesting] = useState(false);

@@ -13,18 +13,20 @@ import { SettingsPanel } from './windows/Settings';
 import { TerminalEnhanced } from './windows/Terminal';
 import { FileExplorer, PackageManager, SystemMonitor, ProcessManager } from './windows';
 
-const WINDOW_COMPONENTS = {
+const WINDOW_COMPONENTS: Record<string, React.ComponentType<any>> = {
   'aether-chat': AetherChat,
-  'settings': SettingsPanel,
-  'terminal': TerminalEnhanced,
+  settings: SettingsPanel,
+  terminal: TerminalEnhanced,
   'file-explorer': FileExplorer,
   'package-manager': PackageManager,
   'system-monitor': SystemMonitor,
   'process-manager': ProcessManager,
-} as const;
+};
 
 export function WindowManager() {
-  const { windows, closeWindow, minimizeWindow, maximizeWindow, focusWindow, openWindow, focusedWindowId } = useWindowStore();
+  const windows = useWindowStore((state) => state.windows);
+  const closeWindow = useWindowStore((state) => state.closeWindow);
+  const openWindow = useWindowStore((state) => state.openWindow);
   const { connected } = useBytebot();
   const { isConfigured } = useSettingsStore();
 
@@ -36,7 +38,7 @@ export function WindowManager() {
   };
 
   const renderWindow = (windowId: string, window: any) => {
-    const Component = WINDOW_COMPONENTS[window.appId as keyof typeof WINDOW_COMPONENTS];
+    const Component = WINDOW_COMPONENTS[window.appId];
 
     if (!Component) {
       return (
@@ -65,7 +67,7 @@ export function WindowManager() {
         closeable={window.closeable}
         resizable={window.resizable}
       >
-        <Component />
+        <Component windowId={windowId} onClose={() => closeWindow(windowId)} />
       </AdvancedWindow>
     );
   };

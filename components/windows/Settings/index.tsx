@@ -1,5 +1,4 @@
 'use client';
 
-import { SettingsPanel } from './SettingsPanel';
-
-export { SettingsPanel as Settings };
+export { SettingsPanel } from './SettingsPanel';
+export { SettingsPanel as Settings } from './SettingsPanel';
