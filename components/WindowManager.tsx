@@ -81,10 +81,11 @@ export function WindowManager() {
         <div className="bg-[#171717] border border-amber-500/30 rounded-xl p-8 max-w-md mx-4">
           <h2 className="text-xl font-bold text-white mb-4">⚙️ A.E Configuration Required</h2>
           <p className="text-gray-300 mb-4">
-            To get started with A.E (AETHER ENGINE), you need to configure your NVIDIA API key.
+            To get started with A.E (AETHER ENGINE), you need to configure your AI provider and API key.
           </p>
           <p className="text-sm text-gray-400 mb-6">
             A.E will use this to access powerful language models for autonomous operation of your system.
+            Choose from NVIDIA, OpenAI, Anthropic, Google, Mistral, Cohere, Together AI, or a custom provider.
           </p>
           <button
             onClick={handleOpenSettings}

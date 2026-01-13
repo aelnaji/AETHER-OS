@@ -100,7 +100,7 @@ export function useAetherChat(): UseAetherChatReturn {
 
     // Check if settings are configured
     if (!isConfigured || !llmSettings.apiKey) {
-      setError('Please configure your NVIDIA API key in Settings before chatting with A.E');
+      setError('Please configure your API key in Settings before chatting with A.E');
       return;
     }
 
@@ -142,13 +142,15 @@ export function useAetherChat(): UseAetherChatReturn {
       
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          'x-nvidia-api-key': llmSettings.apiKey,
-          'x-nvidia-model': llmSettings.model,
-          'x-nvidia-temperature': llmSettings.temperature.toString(),
-          'x-nvidia-max-tokens': llmSettings.maxTokens.toString(),
-          'x-nvidia-system-prompt': llmSettings.systemPrompt,
+          'x-llm-api-key': llmSettings.apiKey,
+          'x-llm-endpoint': llmSettings.endpoint,
+          'x-llm-provider': llmSettings.provider,
+          'x-llm-model': llmSettings.model,
+          'x-llm-temperature': llmSettings.temperature.toString(),
+          'x-llm-max-tokens': llmSettings.maxTokens.toString(),
+          'x-llm-system-prompt': llmSettings.systemPrompt,
         },
         body: JSON.stringify({
           messages: newMessages.map((m) => ({
@@ -156,6 +158,8 @@ export function useAetherChat(): UseAetherChatReturn {
             content: m.content,
           })),
           model: llmSettings.model,
+          endpoint: llmSettings.endpoint,
+          provider: llmSettings.provider,
           includeTools: true,
         }),
         signal: abortControllerRef.current.signal,

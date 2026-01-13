@@ -18,8 +18,8 @@ export function AetherChat({ windowId, onClose }: AetherChatProps = {}) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { isConfigured } = useSettingsStore();
-  
+  const { isConfigured, availableModels, llmSettings } = useSettingsStore();
+
   const {
     messages,
     isLoading,
@@ -32,14 +32,6 @@ export function AetherChat({ windowId, onClose }: AetherChatProps = {}) {
     loadChatSession,
     currentSessionId,
   } = useAetherChat();
-
-  const availableModels = [
-    'meta/llama-3.1-405b-instruct',
-    'meta/llama-3.1-70b-instruct',
-    'mistralai/mistral-large',
-    'mistralai/mistral-7b-instruct-v0.1',
-    'google/gemma-7b',
-  ];
 
   const handleSubmit = async () => {
     if (inputValue.trim() && !isLoading) {

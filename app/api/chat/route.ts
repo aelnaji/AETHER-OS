@@ -19,12 +19,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get NVIDIA API settings from request headers or body
-    const apiKey = request.headers.get('x-nvidia-api-key') || body.apiKey || '';
-    const model = request.headers.get('x-nvidia-model') || bodyModel || 'meta/llama-3.1-405b-instruct';
-    const temperature = parseFloat(request.headers.get('x-nvidia-temperature') || body.temperature?.toString() || '0.7');
-    const maxTokens = parseInt(request.headers.get('x-nvidia-max-tokens') || body.maxTokens?.toString() || '2048');
-    const systemPrompt = request.headers.get('x-nvidia-system-prompt') || body.systemPrompt || `You are A.E (AETHER ENGINE), an autonomous AI agent integrated into AETHER-OS running on a local Docker environment. You can control the desktop, execute code, manage files, and accomplish real tasks. You have access to:
+    // Get API settings from request headers or body
+    const apiKey = request.headers.get('x-llm-api-key') || body.apiKey || '';
+    const endpoint = request.headers.get('x-llm-endpoint') || body.endpoint || '';
+    const provider = request.headers.get('x-llm-provider') || body.provider || 'nvidia';
+    const model = request.headers.get('x-llm-model') || bodyModel || 'meta/llama-3.1-405b-instruct';
+    const temperature = parseFloat(request.headers.get('x-llm-temperature') || body.temperature?.toString() || '0.7');
+    const maxTokens = parseInt(request.headers.get('x-llm-max-tokens') || body.maxTokens?.toString() || '2048');
+    const systemPrompt = request.headers.get('x-llm-system-prompt') || body.systemPrompt || `You are A.E (AETHER ENGINE), an autonomous AI agent integrated into AETHER-OS running on a local Docker environment. You can control the desktop, execute code, manage files, and accomplish real tasks. You have access to:
 - Terminal/shell commands
 - File system operations (read, write, create, delete)
 - Application launching and management
@@ -36,7 +38,7 @@ Be conversational, helpful, and always explain what you're doing before executin
     // Validate API key
     if (!apiKey) {
       return new NextResponse(
-        JSON.stringify({ error: 'NVIDIA API key not configured. Please configure your API key in Settings.' }),
+        JSON.stringify({ error: 'API key not configured. Please configure your API key in Settings.' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -59,8 +61,8 @@ Be conversational, helpful, and always explain what you're doing before executin
             content: m.content,
           }));
 
-          // Create a new client instance with the user's API key
-          const client = new NvidiaClient(apiKey);
+          // Create a new client instance with the user's API key and endpoint
+          const client = new NvidiaClient(apiKey, endpoint);
           
           const isStreaming = process.env.NEXT_PUBLIC_CHAT_STREAMING !== 'false';
 
@@ -112,14 +114,15 @@ Be conversational, helpful, and always explain what you're doing before executin
 export async function GET(request: NextRequest) {
   try {
     // Get API key from headers for validation
-    const apiKey = request.headers.get('x-nvidia-api-key');
-    
+    const apiKey = request.headers.get('x-llm-api-key');
+    const endpoint = request.headers.get('x-llm-endpoint');
+
     if (apiKey) {
       // Validate the API key
       try {
-        const client = new NvidiaClient(apiKey);
+        const client = new NvidiaClient(apiKey, endpoint || undefined);
         const isValid = await client.validateApiKey();
-        
+
         return NextResponse.json({
           status: isValid ? 'ready' : 'invalid_api_key',
           models: [
