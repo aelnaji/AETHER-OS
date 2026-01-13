@@ -124,7 +124,7 @@ export function FileExplorer({ onClose }: { onClose: () => void }) {
   const handleItemClick = (item: { name: string; path: string; type: string }) => {
     if (item.type === 'folder') {
       setCurrentPath(item.path);
-      setExpandedFolders((prev) => new Set([...prev, item.path]));
+      setExpandedFolders((prev) => new Set([...Array.from(prev), item.path]));
     } else {
       setSelectedItems([item.path]);
     }

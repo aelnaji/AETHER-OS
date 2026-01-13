@@ -22,9 +22,12 @@ export function Taskbar() {
   const { theme } = useUIStore();
   const { connected } = useBytebot();
   const { isConfigured } = useSettingsStore();
-  const [currentTime, setCurrentTime] = React.useState(new Date());
+  const [currentTime, setCurrentTime] = React.useState<Date | null>(null);
+  const [isHydrated, setIsHydrated] = React.useState(false);
 
   React.useEffect(() => {
+    setIsHydrated(true);
+    setCurrentTime(new Date());
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
@@ -165,12 +168,21 @@ export function Taskbar() {
 
         {/* Clock */}
         <div className="flex flex-col items-end px-3 py-1 bg-white/5 rounded-lg">
-          <span className="text-sm font-medium text-gray-300">
-            {formatTime(currentTime)}
-          </span>
-          <span className="text-xs text-gray-500">
-            {formatDate(currentTime)}
-          </span>
+          {isHydrated && currentTime ? (
+            <>
+              <span className="text-sm font-medium text-gray-300">
+                {formatTime(currentTime)}
+              </span>
+              <span className="text-xs text-gray-500">
+                {formatDate(currentTime)}
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="text-sm font-medium text-gray-500">--:--</span>
+              <span className="text-xs text-gray-600">--/--/----</span>
+            </>
+          )}
         </div>
 
         {/* Theme Toggle */}
