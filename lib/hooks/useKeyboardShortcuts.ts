@@ -186,16 +186,16 @@ export const useKeyboardShortcuts = (
   // Super/Ctrl+Left/Right - Snap window to left/right half
   const handleSnapWindow = useCallback(
     (e: KeyboardEvent) => {
-      if (focusedWindowId) {
-        const viewport = { width: window.innerWidth, height: window.innerHeight };
+      if (focusedWindowId && typeof window !== 'undefined') {
+        const viewport = { width: globalThis.window.innerWidth, height: globalThis.window.innerHeight };
         const isLeft = (e.metaKey || e.ctrlKey) && e.key === 'ArrowLeft';
         const isRight = (e.metaKey || e.ctrlKey) && e.key === 'ArrowRight';
 
         if (isLeft || isRight) {
           if (preventDefault) e.preventDefault();
 
-          const window = windows[focusedWindowId];
-          if (window.isMaximized) {
+          const currentWindow = windows[focusedWindowId];
+          if (currentWindow.isMaximized) {
             restoreFromMaximize(focusedWindowId);
           }
 
@@ -259,7 +259,7 @@ export const useKeyboardShortcuts = (
   );
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || typeof window === 'undefined') return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't trigger shortcuts when typing in input fields
@@ -294,10 +294,12 @@ export const useKeyboardShortcuts = (
       handleEscape(e);
     };
 
-    window.addEventListener('keydown', handleKeyDown);
+    globalThis.window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      if (typeof window !== 'undefined') {
+        globalThis.window.removeEventListener('keydown', handleKeyDown);
+      }
     };
   }, [
     enabled,

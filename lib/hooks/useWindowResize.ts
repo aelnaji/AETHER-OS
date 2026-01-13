@@ -121,14 +121,16 @@ export const useWindowResize = ({
   }, [windowId, endResize, onResizeEnd]);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || typeof window === 'undefined') return;
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
+    globalThis.window.addEventListener('mousemove', handleMouseMove);
+    globalThis.window.addEventListener('mouseup', handleMouseUp);
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      if (typeof window !== 'undefined') {
+        globalThis.window.removeEventListener('mousemove', handleMouseMove);
+        globalThis.window.removeEventListener('mouseup', handleMouseUp);
+      }
     };
   }, [enabled, handleMouseMove, handleMouseUp]);
 

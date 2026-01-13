@@ -19,6 +19,8 @@ interface WindowExtendedState extends WindowState {
   dragOffset?: { x: number; y: number };
   isResizing?: boolean;
   resizeHandle?: string | null;
+  originalSize?: WindowSize;
+  originalPosition?: WindowPosition;
   previousState?: {
     position: WindowPosition;
     size: WindowSize;
