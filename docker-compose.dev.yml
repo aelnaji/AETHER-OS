@@ -1,7 +1,7 @@
 services:
   aether-os:
     build:
-      context: ..
+      context: .
       dockerfile: Dockerfile
       target: dev
     environment:
@@ -25,14 +25,18 @@ services:
 
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"
+      # Uncomment to enable Node inspector in dev
+      # NODE_OPTIONS: "--inspect=0.0.0.0:9229"
     ports:
       - "${AETHER_OS_PORT:-3000}:3000"
       - "${AETHER_OS_DEBUG_PORT:-9229}:9229"
     volumes:
-      - ..:/app
+      - .:/app
       - aether_os_node_modules:/app/node_modules
       - aether_os_next_cache:/app/.next
     command: npm run dev
+    networks:
+      - aether-net
     logging:
       driver: json-file
       options:
@@ -42,3 +46,7 @@ services:
 volumes:
   aether_os_node_modules:
   aether_os_next_cache:
+
+networks:
+  aether-net:
+    driver: bridge

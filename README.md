@@ -4,6 +4,8 @@
 
 AETHER-OS is now integrated with Bytebot backend using NVIDIA API for LLM access. This setup provides real command execution, file management, and terminal access through a Dockerized environment.
 
+For production-ready Docker deployment (dev/staging/prod compose files, env management, and health checks), see **DEPLOYMENT.md**.
+
 ## Quick Start (3 Steps)
 
 ### Step 1: Get NVIDIA API Key

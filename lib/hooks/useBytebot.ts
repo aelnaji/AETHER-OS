@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { BytebotToolExecutor } from '@/lib/services/bytebot-executor';
+import { publicEnv } from '@/lib/config/publicEnv';
 import { ToolCall, ToolCallResult } from '@/lib/types/chat';
 
 export function useBytebot() {
@@ -12,8 +13,7 @@ export function useBytebot() {
   const [desktopState, setDesktopState] = useState<any>(null);
 
   useEffect(() => {
-    const endpoint = process.env.NEXT_PUBLIC_BYTEBOT_ENDPOINT || 'http://localhost:3001';
-    const executor = new BytebotToolExecutor(endpoint);
+    const executor = new BytebotToolExecutor(publicEnv.bytebotEndpoint);
     setExecutor(executor);
 
     // Set up listeners
