@@ -17,7 +17,7 @@ interface FileSystemState {
 
 export const useFileSystemStore = create<FileSystemState>((set, get) => ({
   files: {},
-  installedApps: {},
+  installedApps: {}, // Object with appId keys for efficient lookup
   currentDirectory: '/',
 
   writeFile: (path, content) => {
@@ -82,6 +82,8 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => ({
   },
 
   getInstalledApps: () => {
-    return Object.values(get().installedApps);
+    const apps = Object.values(get().installedApps);
+    // Ensure we always return an array
+    return Array.isArray(apps) ? apps : [];
   },
 }));
