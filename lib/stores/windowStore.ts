@@ -184,8 +184,8 @@ export const useWindowStore = create<WindowManagerState>()(
               [windowId]: { 
                 ...state.windows[windowId], 
                 isMaximized: false,
-                position: window.previousState.position,
-                size: window.previousState.size,
+                position: window.previousState!.position,
+                size: window.previousState!.size,
                 previousState: undefined,
               },
             },

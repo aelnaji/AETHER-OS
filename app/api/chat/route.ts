@@ -6,7 +6,7 @@ import { Message, ChatOptions } from '@/lib/types/chat';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { messages, model, includeTools = true } = body as {
+    const { messages, model: bodyModel, includeTools = true } = body as {
       messages: Array<{ role: 'user' | 'assistant'; content: string }>;
       model?: string;
       includeTools?: boolean;
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     // Get NVIDIA API settings from request headers or body
     const apiKey = request.headers.get('x-nvidia-api-key') || body.apiKey || '';
-    const model = request.headers.get('x-nvidia-model') || body.model || 'meta/llama-3.1-405b-instruct';
+    const model = request.headers.get('x-nvidia-model') || bodyModel || 'meta/llama-3.1-405b-instruct';
     const temperature = parseFloat(request.headers.get('x-nvidia-temperature') || body.temperature?.toString() || '0.7');
     const maxTokens = parseInt(request.headers.get('x-nvidia-max-tokens') || body.maxTokens?.toString() || '2048');
     const systemPrompt = request.headers.get('x-nvidia-system-prompt') || body.systemPrompt || `You are A.E (AETHER ENGINE), an autonomous AI agent integrated into AETHER-OS running on a local Docker environment. You can control the desktop, execute code, manage files, and accomplish real tasks. You have access to:

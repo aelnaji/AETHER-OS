@@ -55,7 +55,7 @@ export function AdvancedWindow({
 
   if (!window) return null;
 
-  const windowStyle = {
+  const windowStyle: React.CSSProperties = {
     left: window.position.x,
     top: window.position.y,
     width: window.size.width,
@@ -63,7 +63,7 @@ export function AdvancedWindow({
     zIndex: window.zIndex,
     transform: window.isMinimized ? 'scale(0.9)' : 'scale(1)',
     opacity: window.isMinimized ? 0 : 1,
-    pointerEvents: window.isMinimized ? 'none' : 'auto',
+    pointerEvents: window.isMinimized ? 'none' as const : 'auto' as const,
   };
 
   return (
