@@ -2,26 +2,33 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { NvidiaClient } from '@/lib/api/nvidiaClient';
 import { publicEnv } from '@/lib/config/publicEnv';
+import { DEFAULT_PROVIDER, getProviderModels } from '@/lib/constants/aiProviders';
 
 interface LLMSettings {
+  provider: string;
   endpoint: string;
   apiKey: string;
   model: string;
   temperature: number;
   maxTokens: number;
   systemPrompt: string;
+  customModel?: string; // For custom providers
 }
 
 interface SettingsStore {
   llmSettings: LLMSettings;
   isConfigured: boolean;
+  availableModels: string[];
   updateLLMSettings: (settings: Partial<LLMSettings>) => void;
+  updateProvider: (providerId: string) => void;
   resetToDefaults: () => void;
   validateSettings: () => Promise<boolean>;
   testConnection: () => Promise<boolean>;
+  getProviderModels: () => string[];
 }
 
 const DEFAULT_SETTINGS: LLMSettings = {
+  provider: DEFAULT_PROVIDER,
   endpoint: publicEnv.nvidiaApiEndpoint,
   apiKey: '',
   model: publicEnv.defaultModel,
@@ -34,7 +41,7 @@ const DEFAULT_SETTINGS: LLMSettings = {
 - Code execution (Python, Node.js, Bash)
 - Git operations
 
-Be conversational, helpful, and always explain what you're doing before executing tools.`
+Be conversational, helpful, and always explain what you're doing before executing tools.`,
 };
 
 export const NVIDIA_MODELS = [
@@ -50,6 +57,7 @@ export const useSettingsStore = create<SettingsStore>()(
     (set, get) => ({
       llmSettings: { ...DEFAULT_SETTINGS },
       isConfigured: false,
+      availableModels: getProviderModels(DEFAULT_PROVIDER),
 
       updateLLMSettings: (settings) => {
         set((state) => {
@@ -62,10 +70,26 @@ export const useSettingsStore = create<SettingsStore>()(
         });
       },
 
+      updateProvider: (providerId) => {
+        set((state) => {
+          const models = getProviderModels(providerId);
+          const updatedSettings = {
+            ...state.llmSettings,
+            provider: providerId,
+            model: models[0] || '',
+          };
+          return {
+            llmSettings: updatedSettings,
+            availableModels: models,
+          };
+        });
+      },
+
       resetToDefaults: () => {
         set({
           llmSettings: { ...DEFAULT_SETTINGS },
-          isConfigured: false
+          isConfigured: false,
+          availableModels: getProviderModels(DEFAULT_PROVIDER),
         });
       },
 
@@ -74,41 +98,46 @@ export const useSettingsStore = create<SettingsStore>()(
         if (!llmSettings.apiKey || llmSettings.apiKey.length === 0) {
           return false;
         }
-        
+
         if (!llmSettings.endpoint || !llmSettings.endpoint.startsWith('http')) {
           return false;
         }
-        
+
         if (!llmSettings.model || llmSettings.model.length === 0) {
           return false;
         }
-        
-        if (llmSettings.temperature < 0 || llmSettings.temperature > 1) {
+
+        if (llmSettings.temperature < 0 || llmSettings.temperature > 2) {
           return false;
         }
-        
-        if (llmSettings.maxTokens < 1 || llmSettings.maxTokens > 4096) {
+
+        if (llmSettings.maxTokens < 1 || llmSettings.maxTokens > 32768) {
           return false;
         }
-        
+
         return true;
       },
 
       testConnection: async () => {
         const { llmSettings } = get();
-        
+
         if (!llmSettings.apiKey) {
           return false;
         }
-        
+
         try {
-          const client = new NvidiaClient(llmSettings.apiKey);
+          const client = new NvidiaClient(llmSettings.apiKey, llmSettings.endpoint);
           return await client.validateApiKey();
         } catch (error) {
           console.error('Connection test failed:', error);
           return false;
         }
-      }
+      },
+
+      getProviderModels: () => {
+        const { llmSettings } = get();
+        return getProviderModels(llmSettings.provider);
+      },
     }),
     {
       name: 'aether-settings',
