@@ -2,22 +2,31 @@
 
 import React, { useState } from 'react';
 import { Plus, MessageSquare, Clock, Trash2 } from 'lucide-react';
-import { useAetherChat } from '@/lib/hooks/useAetherChat';
-import { ChatSession } from '@/lib/types/chat';
+import { Conversation } from '@/lib/services/fileService';
 
 interface ChatSidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  chatHistory: Conversation[];
+  currentSessionId: string | null;
+  onLoadChat: (sessionId: string) => void;
+  onClearChat: () => void;
 }
 
-export function ChatSidebar({ isOpen, onClose }: ChatSidebarProps) {
-  const { chatHistory, loadChatSession, clearChat, currentSessionId } = useAetherChat();
+export function ChatSidebar({ 
+  isOpen, 
+  onClose, 
+  chatHistory, 
+  currentSessionId, 
+  onLoadChat, 
+  onClearChat 
+}: ChatSidebarProps) {
   const [confirmClear, setConfirmClear] = useState(false);
 
-  const formatTimestamp = (date: Date | string) => {
-    const d = new Date(date);
+  const formatTimestamp = (timestamp: number) => {
+    const date = new Date(timestamp);
     const now = new Date();
-    const diffMs = now.getTime() - d.getTime();
+    const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
@@ -26,17 +35,17 @@ export function ChatSidebar({ isOpen, onClose }: ChatSidebarProps) {
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
-    return d.toLocaleDateString();
+    return date.toLocaleDateString();
   };
 
   const handleNewChat = () => {
-    clearChat();
+    onClearChat();
     onClose();
   };
 
   const handleClearHistory = () => {
     if (confirmClear) {
-      clearChat();
+      onClearChat();
       setConfirmClear(false);
     } else {
       setConfirmClear(true);
@@ -44,8 +53,8 @@ export function ChatSidebar({ isOpen, onClose }: ChatSidebarProps) {
     }
   };
 
-  const handleSelectSession = (session: ChatSession) => {
-    loadChatSession(session.id);
+  const handleSelectSession = (session: Conversation) => {
+    onLoadChat(session.id);
     onClose();
   };
 

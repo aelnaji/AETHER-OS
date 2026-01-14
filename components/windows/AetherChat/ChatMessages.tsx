@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import { Bot, User, Terminal, Wrench, CheckCircle, XCircle, Loader2 } from 'lucide-react';
-import { MessageBubble, ToolCallResult } from '@/lib/types/chat';
+import { Bot, User, Loader2 } from 'lucide-react';
+import { ChatMessage } from '@/lib/services/fileService';
 
 interface ChatMessagesProps {
-  messages: MessageBubble[];
+  messages: ChatMessage[];
   isLoading: boolean;
 }
 
@@ -27,8 +27,13 @@ export function ChatMessages({ messages, isLoading }: ChatMessagesProps) {
             Chat with A.E
           </h3>
           <p className="text-gray-400 text-sm">
-            Your AI assistant for AETHER OS. Ask me to install apps, open programs, run commands, or help with any task.
+            Your AI assistant for AETHER OS. Ask me to help with tasks, answer questions, or assist with your work.
           </p>
+          {!isLoading && (
+            <div className="mt-6 text-sm text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
+              💡 Tip: Configure your API settings first to start chatting
+            </div>
+          )}
         </div>
       </div>
     );
@@ -52,7 +57,7 @@ export function ChatMessages({ messages, isLoading }: ChatMessagesProps) {
   );
 }
 
-function MessageBubbleComponent({ message }: { message: MessageBubble }) {
+function MessageBubbleComponent({ message }: { message: ChatMessage }) {
   const isUser = message.role === 'user';
 
   return (
@@ -86,24 +91,7 @@ function MessageBubbleComponent({ message }: { message: MessageBubble }) {
               {message.content}
             </div>
           )}
-
-          {/* Tool Calls Display */}
-          {message.toolResults && message.toolResults.length > 0 && (
-            <ToolResultsDisplay results={message.toolResults} />
-          )}
         </div>
-
-        {/* Loading indicator for assistant */}
-        {message.isLoading && (
-          <div className="flex items-center gap-1 mt-2">
-            <span className="text-xs text-gray-500">A.E is typing</span>
-            <div className="flex gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500/50 animate-bounce" style={{ animationDelay: '0ms' }} />
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500/50 animate-bounce" style={{ animationDelay: '150ms' }} />
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500/50 animate-bounce" style={{ animationDelay: '300ms' }} />
-            </div>
-          </div>
-        )}
 
         {/* Timestamp */}
         <span className="text-xs text-gray-600 mt-1 px-1">
@@ -111,36 +99,13 @@ function MessageBubbleComponent({ message }: { message: MessageBubble }) {
             hour: '2-digit',
             minute: '2-digit',
           })}
+          {message.tokens && (
+            <span className="ml-2 text-gray-500">
+              ({message.tokens} tokens)
+            </span>
+          )}
         </span>
       </div>
-    </div>
-  );
-}
-
-function ToolResultsDisplay({ results }: { results: ToolCallResult[] }) {
-  return (
-    <div className="mt-3 space-y-2 border-t border-white/10 pt-3">
-      {results.map((result, index) => (
-        <div
-          key={result.id || index}
-          className="flex items-start gap-2 p-2 rounded-lg bg-white/5 border border-white/10"
-        >
-          {result.success ? (
-            <CheckCircle size={14} className="text-green-400 mt-0.5 flex-shrink-0" />
-          ) : (
-            <XCircle size={14} className="text-red-400 mt-0.5 flex-shrink-0" />
-          )}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <Terminal size={12} className="text-amber-400" />
-              <span className="text-xs font-medium text-amber-400">{result.name}</span>
-            </div>
-            <p className="text-xs text-gray-400 mt-1 break-words">
-              {result.error || result.output || 'Executed successfully'}
-            </p>
-          </div>
-        </div>
-      ))}
     </div>
   );
 }

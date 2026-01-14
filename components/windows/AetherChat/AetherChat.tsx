@@ -18,14 +18,12 @@ export function AetherChat({ windowId, onClose }: AetherChatProps = {}) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { isConfigured, availableModels, llmSettings } = useSettingsStore();
+  const { isConfigured } = useSettingsStore();
 
   const {
     messages,
     isLoading,
     error,
-    model,
-    setModel,
     sendMessage,
     clearChat,
     chatHistory,
@@ -46,6 +44,10 @@ export function AetherChat({ windowId, onClose }: AetherChatProps = {}) {
       <ChatSidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        chatHistory={chatHistory}
+        currentSessionId={currentSessionId}
+        onLoadChat={loadChatSession}
+        onClearChat={clearChat}
       />
 
       {/* Main Content */}
@@ -67,7 +69,7 @@ export function AetherChat({ windowId, onClose }: AetherChatProps = {}) {
               <div>
                 <h1 className="text-sm font-semibold text-white">A.E Chat</h1>
                 <p className="text-xs text-gray-500">
-                  {isLoading ? 'Thinking...' : 'Ready'}
+                  {isLoading ? 'Thinking...' : isConfigured ? 'Ready' : 'Configure API first'}
                 </p>
               </div>
             </div>
@@ -108,9 +110,7 @@ export function AetherChat({ windowId, onClose }: AetherChatProps = {}) {
             onChange={setInputValue}
             onSubmit={handleSubmit}
             isLoading={isLoading}
-            model={model}
-            onModelChange={setModel}
-            availableModels={availableModels}
+            disabled={!isConfigured}
           />
         </div>
       </div>

@@ -1,147 +1,192 @@
+/**
+ * Simple Settings Store for AETHER-OS
+ * Clean, simple settings management with real persistence
+ */
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { NvidiaClient } from '@/lib/api/nvidiaClient';
-import { publicEnv } from '@/lib/config/publicEnv';
-import { DEFAULT_PROVIDER, getProviderModels } from '@/lib/constants/aiProviders';
+import { APISettings } from '@/lib/services/apiService';
+import { testConnection } from '@/lib/services/apiService';
+import { saveSettings, loadSettings } from '@/lib/services/fileService';
 
-interface LLMSettings {
-  provider: string;
-  endpoint: string;
+interface SettingsStore {
+  // Settings
+  baseUrl: string;
   apiKey: string;
-  model: string;
   temperature: number;
   maxTokens: number;
   systemPrompt: string;
-  customModel?: string; // For custom providers
-}
-
-interface SettingsStore {
-  llmSettings: LLMSettings;
+  
+  // State
   isConfigured: boolean;
-  availableModels: string[];
-  updateLLMSettings: (settings: Partial<LLMSettings>) => void;
-  updateProvider: (providerId: string) => void;
-  resetToDefaults: () => void;
-  validateSettings: () => Promise<boolean>;
+  isLoading: boolean;
+  testResult: { success: boolean; message: string } | null;
+  
+  // Actions
+  setBaseUrl: (url: string) => void;
+  setApiKey: (key: string) => void;
+  setTemperature: (temp: number) => void;
+  setMaxTokens: (tokens: number) => void;
+  setSystemPrompt: (prompt: string) => void;
   testConnection: () => Promise<boolean>;
-  getProviderModels: () => string[];
+  saveSettings: () => Promise<void>;
+  loadSettings: () => Promise<void>;
+  resetToDefaults: () => void;
+  getAPISettings: () => APISettings;
 }
 
-const DEFAULT_SETTINGS: LLMSettings = {
-  provider: DEFAULT_PROVIDER,
-  endpoint: publicEnv.nvidiaApiEndpoint,
+const DEFAULT_SETTINGS = {
+  baseUrl: 'https://api.openai.com/v1',
   apiKey: '',
-  model: publicEnv.defaultModel,
   temperature: 0.7,
   maxTokens: 2048,
-  systemPrompt: `You are A.E (AETHER ENGINE), an autonomous AI agent integrated into AETHER-OS running on a local Docker environment. You can control the desktop, execute code, manage files, and accomplish real tasks. You have access to:
-- Terminal/shell commands
-- File system operations (read, write, create, delete)
-- Application launching and management
-- Code execution (Python, Node.js, Bash)
-- Git operations
-
-Be conversational, helpful, and always explain what you're doing before executing tools.`,
+  systemPrompt: 'You are A.E, a helpful AI assistant.',
 };
-
-export const NVIDIA_MODELS = [
-  'meta/llama-3.1-405b-instruct',
-  'mistralai/mistral-large',
-  'meta/llama-3.1-70b-instruct',
-  'qwen/qwen-1.5-32b-chat',
-  'mistralai/mistral-7b-instruct'
-];
 
 export const useSettingsStore = create<SettingsStore>()(
   persist(
     (set, get) => ({
-      llmSettings: { ...DEFAULT_SETTINGS },
+      // Initial state
+      ...DEFAULT_SETTINGS,
       isConfigured: false,
-      availableModels: getProviderModels(DEFAULT_PROVIDER),
+      isLoading: false,
+      testResult: null,
 
-      updateLLMSettings: (settings) => {
-        set((state) => {
-          const updatedSettings = { ...state.llmSettings, ...settings };
-          const isConfigured = !!updatedSettings.apiKey && updatedSettings.apiKey.length > 0;
-          return {
-            llmSettings: updatedSettings,
-            isConfigured
-          };
+      // Actions
+      setBaseUrl: (url: string) => {
+        set({ 
+          baseUrl: url.trim(),
+          isConfigured: !!(get().apiKey && url.trim()),
+          testResult: null 
         });
       },
 
-      updateProvider: (providerId) => {
-        set((state) => {
-          const models = getProviderModels(providerId);
-          const updatedSettings = {
-            ...state.llmSettings,
-            provider: providerId,
-            model: models[0] || '',
-          };
-          return {
-            llmSettings: updatedSettings,
-            availableModels: models,
-          };
+      setApiKey: (key: string) => {
+        set({ 
+          apiKey: key.trim(),
+          isConfigured: !!(key.trim() && get().baseUrl),
+          testResult: null 
         });
+      },
+
+      setTemperature: (temp: number) => {
+        set({ 
+          temperature: Math.max(0, Math.min(2, temp)),
+          testResult: null 
+        });
+      },
+
+      setMaxTokens: (tokens: number) => {
+        set({ 
+          maxTokens: Math.max(1, Math.min(32768, tokens)),
+          testResult: null 
+        });
+      },
+
+      setSystemPrompt: (prompt: string) => {
+        set({ systemPrompt: prompt });
+      },
+
+      testConnection: async () => {
+        const { baseUrl, apiKey } = get();
+        
+        if (!baseUrl || !apiKey) {
+          set({ 
+            testResult: { success: false, message: 'Base URL and API Key are required' }
+          });
+          return false;
+        }
+
+        set({ isLoading: true, testResult: null });
+
+        try {
+          const result = await testConnection(baseUrl, apiKey);
+          set({ 
+            testResult: result,
+            isLoading: false 
+          });
+          return result.success;
+        } catch (error) {
+          const result = { 
+            success: false, 
+            message: `Connection test failed: ${error instanceof Error ? error.message : 'Unknown error'}` 
+          };
+          set({ 
+            testResult: result,
+            isLoading: false 
+          });
+          return false;
+        }
+      },
+
+      saveSettings: async () => {
+        const { baseUrl, temperature, maxTokens, systemPrompt } = get();
+        
+        const settingsToSave = {
+          baseUrl,
+          temperature,
+          maxTokens,
+          systemPrompt,
+        };
+
+        try {
+          await saveSettings(settingsToSave);
+        } catch (error) {
+          console.error('Failed to save settings:', error);
+        }
+      },
+
+      loadSettings: async () => {
+        set({ isLoading: true });
+
+        try {
+          const result = await loadSettings();
+          if (result.success && result.data) {
+            const { baseUrl, temperature, maxTokens, systemPrompt } = result.data;
+            set({
+              baseUrl: baseUrl || DEFAULT_SETTINGS.baseUrl,
+              temperature: temperature || DEFAULT_SETTINGS.temperature,
+              maxTokens: maxTokens || DEFAULT_SETTINGS.maxTokens,
+              systemPrompt: systemPrompt || DEFAULT_SETTINGS.systemPrompt,
+              isConfigured: !!(get().apiKey && (baseUrl || DEFAULT_SETTINGS.baseUrl)),
+            });
+          }
+        } catch (error) {
+          console.error('Failed to load settings:', error);
+        } finally {
+          set({ isLoading: false });
+        }
       },
 
       resetToDefaults: () => {
         set({
-          llmSettings: { ...DEFAULT_SETTINGS },
+          ...DEFAULT_SETTINGS,
           isConfigured: false,
-          availableModels: getProviderModels(DEFAULT_PROVIDER),
+          testResult: null,
         });
       },
 
-      validateSettings: async () => {
-        const { llmSettings } = get();
-        if (!llmSettings.apiKey || llmSettings.apiKey.length === 0) {
-          return false;
-        }
-
-        if (!llmSettings.endpoint || !llmSettings.endpoint.startsWith('http')) {
-          return false;
-        }
-
-        if (!llmSettings.model || llmSettings.model.length === 0) {
-          return false;
-        }
-
-        if (llmSettings.temperature < 0 || llmSettings.temperature > 2) {
-          return false;
-        }
-
-        if (llmSettings.maxTokens < 1 || llmSettings.maxTokens > 32768) {
-          return false;
-        }
-
-        return true;
-      },
-
-      testConnection: async () => {
-        const { llmSettings } = get();
-
-        if (!llmSettings.apiKey) {
-          return false;
-        }
-
-        try {
-          const client = new NvidiaClient(llmSettings.apiKey, llmSettings.endpoint);
-          return await client.validateApiKey();
-        } catch (error) {
-          console.error('Connection test failed:', error);
-          return false;
-        }
-      },
-
-      getProviderModels: () => {
-        const { llmSettings } = get();
-        return getProviderModels(llmSettings.provider);
+      getAPISettings: () => {
+        const { baseUrl, apiKey, temperature, maxTokens, systemPrompt } = get();
+        return {
+          baseUrl,
+          apiKey,
+          temperature,
+          maxTokens,
+          systemPrompt,
+        };
       },
     }),
     {
-      name: 'aether-settings',
+      name: 'aether-simple-settings',
       getStorage: () => localStorage,
+      // Only persist non-sensitive data
+      partialize: (state) => ({
+        baseUrl: state.baseUrl,
+        temperature: state.temperature,
+        maxTokens: state.maxTokens,
+        systemPrompt: state.systemPrompt,
+      }),
     }
   )
 );
