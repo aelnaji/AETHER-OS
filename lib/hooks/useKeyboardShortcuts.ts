@@ -196,6 +196,32 @@ export const useKeyboardShortcuts = (
     [openWindow, preventDefault]
   );
 
+  // Super/Ctrl+K - Open Quicky AI
+  const handleOpenQuickyAI = useCallback(
+    (e: KeyboardEvent) => {
+      const isOpenQuickyAIShortcut = (e.metaKey || e.ctrlKey) && e.key === 'k';
+      
+      if (isOpenQuickyAIShortcut) {
+        if (preventDefault) e.preventDefault();
+        openWindow('quicky-ai', 'Quicky AI');
+      }
+    },
+    [openWindow, preventDefault]
+  );
+
+  // Super/Ctrl+Shift+M - Open AI Monitor
+  const handleOpenAIMonitor = useCallback(
+    (e: KeyboardEvent) => {
+      const isOpenAIMonitorShortcut = (e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'M';
+      
+      if (isOpenAIMonitorShortcut) {
+        if (preventDefault) e.preventDefault();
+        openWindow('ai-monitor', 'AI Monitor');
+      }
+    },
+    [openWindow, preventDefault]
+  );
+
   // Super/Ctrl+Left/Right - Snap window to left/right half
   const handleSnapWindow = useCallback(
     (e: KeyboardEvent) => {
@@ -302,6 +328,8 @@ export const useKeyboardShortcuts = (
       handleOpenSystemMonitor(e);
       handleOpenProcessManager(e);
       handleOpenAppStore(e);
+      handleOpenQuickyAI(e);
+      handleOpenAIMonitor(e);
       handleSnapWindow(e);
       handleCascadeWindows(e);
       handleTileWindows(e);
@@ -329,6 +357,8 @@ export const useKeyboardShortcuts = (
     handleOpenSystemMonitor,
     handleOpenProcessManager,
     handleOpenAppStore,
+    handleOpenQuickyAI,
+    handleOpenAIMonitor,
     handleSnapWindow,
     handleCascadeWindows,
     handleTileWindows,
@@ -343,6 +373,7 @@ export const useKeyboardShortcuts = (
       f11: 'Maximize/Restore window',
       ctrlSpace: 'Maximize/Restore window',
       metaQ: 'Open A.E Chat',
+      metaK: 'Open Quicky AI',
       metaT: 'Open Terminal',
       metaComma: 'Open Settings',
       metaE: 'Open File Explorer',
@@ -350,6 +381,7 @@ export const useKeyboardShortcuts = (
       metaS: 'Open System Monitor',
       metaShiftP: 'Open Process Manager',
       metaShiftA: 'Open App Store',
+      metaShiftM: 'Open AI Monitor',
       metaLeft: 'Snap window left',
       metaRight: 'Snap window right',
       metaA: 'Cascade windows',

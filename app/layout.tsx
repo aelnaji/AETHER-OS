@@ -17,6 +17,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
+      <head>
+        {/* Puter.js SDK for multi-model AI support */}
+        <script src="https://js.puter.com/v2/" async></script>
+      </head>
       <body className={`${inter.variable} font-sans bg-warmwind-bg-black text-gray-200 antialiased selection:bg-warmwind-primary-amber/30`}>
         {children}
       </body>
