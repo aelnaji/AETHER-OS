@@ -1,16 +1,14 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, ChevronDown, Sparkles, Loader2 } from 'lucide-react';
+import { Send, Loader2, AlertCircle } from 'lucide-react';
 
 interface ChatInputProps {
   value: string;
   onChange: (value: string) => void;
   onSubmit: () => void;
   isLoading: boolean;
-  model: string;
-  onModelChange: (model: string) => void;
-  availableModels: string[];
+  disabled?: boolean;
 }
 
 export function ChatInput({
@@ -18,12 +16,9 @@ export function ChatInput({
   onChange,
   onSubmit,
   isLoading,
-  model,
-  onModelChange,
-  availableModels,
+  disabled = false,
 }: ChatInputProps) {
   const [isFocused, setIsFocused] = useState(false);
-  const [showModelDropdown, setShowModelDropdown] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -36,80 +31,34 @@ export function ChatInput({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (value.trim() && !isLoading) {
+      if (value.trim() && !isLoading && !disabled) {
         onSubmit();
       }
     }
   };
 
   const handleSubmit = () => {
-    if (value.trim() && !isLoading) {
+    if (value.trim() && !isLoading && !disabled) {
       onSubmit();
       onChange('');
     }
   };
 
-  const formatModelName = (modelId: string) => {
-    const parts = modelId.split('/');
-    if (parts.length === 2) {
-      const [org, name] = parts;
-      const shortName = name.replace(/-instruct$/, '').replace(/-\d+b$/, '');
-      return `${org}/${shortName}`;
-    }
-    return modelId;
+  const getPlaceholder = () => {
+    if (disabled) return 'Configure your API settings first...';
+    if (isLoading) return 'A.E is thinking...';
+    return 'Ask A.E anything...';
   };
 
   return (
     <div className="relative w-full max-w-4xl mx-auto px-4 pb-4">
-      {/* Model Selector */}
-      <div className="relative mb-2">
-        <button
-          onClick={() => setShowModelDropdown(!showModelDropdown)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
-        >
-          <Sparkles size={12} className="text-amber-400" />
-          <span>{formatModelName(model)}</span>
-          <ChevronDown size={12} className={`transition-transform ${showModelDropdown ? 'rotate-180' : ''}`} />
-        </button>
-
-        {showModelDropdown && (
-          <>
-            <div
-              className="fixed inset-0 z-40"
-              onClick={() => setShowModelDropdown(false)}
-            />
-            <div className="absolute bottom-full left-0 mb-2 w-56 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden">
-              <div className="px-3 py-2 text-xs text-gray-500 border-b border-white/5">
-                Select Model
-              </div>
-              {availableModels.map((m) => (
-                <button
-                  key={m}
-                  onClick={() => {
-                    onModelChange(m);
-                    setShowModelDropdown(false);
-                  }}
-                  className={`w-full px-3 py-2 text-left text-sm transition-colors ${
-                    model === m
-                      ? 'bg-amber-500/20 text-amber-400'
-                      : 'text-gray-300 hover:bg-white/5'
-                  }`}
-                >
-                  {formatModelName(m)}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-
       {/* Input Card */}
       <div
         className={`relative bg-[#1a1a1a] rounded-2xl border transition-all duration-300 ${
           isFocused
             ? 'border-amber-500/50 shadow-lg shadow-amber-500/10'
             : 'border-white/10 hover:border-white/20'
-        }`}
+        } ${disabled ? 'opacity-50' : ''}`}
       >
         <div className="flex items-end gap-2 p-3">
           <textarea
@@ -119,24 +68,26 @@ export function ChatInput({
             onKeyDown={handleKeyDown}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            placeholder="Ask A.E anything..."
-            disabled={isLoading}
+            placeholder={getPlaceholder()}
+            disabled={isLoading || disabled}
             rows={1}
-            className="flex-1 bg-transparent text-white placeholder-gray-500 text-sm resize-none focus:outline-none max-h-[120px] min-h-[24px]"
+            className="flex-1 bg-transparent text-white placeholder-gray-500 text-sm resize-none focus:outline-none max-h-[120px] min-h-[24px] disabled:cursor-not-allowed"
             style={{ height: 'auto' }}
           />
 
           <button
             onClick={handleSubmit}
-            disabled={!value.trim() || isLoading}
+            disabled={!value.trim() || isLoading || disabled}
             className={`flex-shrink-0 p-2 rounded-xl transition-all duration-200 ${
-              value.trim() && !isLoading
+              value.trim() && !isLoading && !disabled
                 ? 'bg-white text-black hover:bg-gray-200'
                 : 'bg-white/10 text-gray-500 cursor-not-allowed'
             }`}
           >
             {isLoading ? (
               <Loader2 size={18} className="animate-spin" />
+            ) : disabled ? (
+              <AlertCircle size={18} />
             ) : (
               <Send size={18} />
             )}

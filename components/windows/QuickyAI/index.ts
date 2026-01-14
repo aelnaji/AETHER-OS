@@ -1,0 +1,1 @@
+export { QuickyAI } from './QuickyAI';
