@@ -8,7 +8,7 @@ import { useBytebot } from '@/lib/hooks/useBytebot';
 import { useKeyboardShortcuts } from '@/lib/hooks/useKeyboardShortcuts';
 import { WindowManager } from './WindowManager';
 import { Taskbar } from './Taskbar';
-import { Settings, Terminal, MessageSquare, Folder, Package, Activity, List, Store } from 'lucide-react';
+import { Settings, Terminal, MessageSquare, Folder, Package, Activity, List, Store, Sparkles } from 'lucide-react';
 
 export function Desktop() {
   const { windows, openWindow } = useWindowStore();
@@ -53,6 +53,16 @@ export function Desktop() {
               <MessageSquare size={24} className="text-amber-400" />
             </div>
             <span className="text-xs text-gray-300 group-hover:text-white">A.E Chat</span>
+          </div>
+
+          <div
+            onClick={() => handleAppClick('quicky-ai', 'Quicky AI')}
+            className="flex flex-col items-center p-3 rounded-xl hover:bg-white/10 cursor-pointer transition-smooth group"
+          >
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+              <Sparkles size={24} className="text-purple-400" />
+            </div>
+            <span className="text-xs text-gray-300 group-hover:text-white">Quicky AI</span>
           </div>
 
           <div

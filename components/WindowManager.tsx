@@ -11,7 +11,7 @@ import {
 } from './windows/AetherChat';
 import { SettingsPanel } from './windows/Settings';
 import { TerminalEnhanced } from './windows/Terminal';
-import { FileExplorer, PackageManager, SystemMonitor, ProcessManager } from './windows';
+import { FileExplorer, PackageManager, SystemMonitor, ProcessManager, QuickyAI, AIMonitor } from './windows';
 import { AppStore } from './windows/AppStore';
 
 const WINDOW_COMPONENTS: Record<string, React.ComponentType<any>> = {
@@ -23,6 +23,8 @@ const WINDOW_COMPONENTS: Record<string, React.ComponentType<any>> = {
   'system-monitor': SystemMonitor,
   'process-manager': ProcessManager,
   'app-store': AppStore,
+  'quicky-ai': QuickyAI,
+  'ai-monitor': AIMonitor,
 };
 
 export function WindowManager() {

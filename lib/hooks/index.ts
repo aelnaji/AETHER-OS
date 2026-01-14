@@ -4,3 +4,4 @@ export { useKeyboardShortcuts } from './useKeyboardShortcuts';
 export { useAetherChat } from './useAetherChat';
 export { useBytebot } from './useBytebot';
 export { useTerminal } from './useTerminal';
+export { useQuickyAI } from './useQuickyAI';
